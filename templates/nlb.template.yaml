@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This stack deploys NLB for NebulaGraph cluster.
+Parameters:
+  VPCID:
+    Description: VPC in which ELB will be placed.
+    Type: AWS::EC2::VPC::Id
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnets in which ELB will be created. Select all AZs/Subnet.
+  Port:
+    Type: String
+    Description: Service port.
+  ExplorerInstanceID:
+    Type: String
+    Description: Choose EC2 instance.
+Resources:
+  ServiceLoadBalancerPublic:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${AWS::StackName}-nlb
+      Scheme: internet-facing
+      Subnets: !Ref Subnets
+      Type: network
+      IpAddressType: ipv4
+      LoadBalancerAttributes:
+        - Key: load_balancing.cross_zone.enabled
+          Value: "true"
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-nlb
+  NetworkLoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${AWS::StackName}-nlb-target
+      Port: !Ref Port
+      Protocol: TCP
+      VpcId: !Ref VPCID
+      Targets:
+      - Id: !Ref ExplorerInstanceID
+        Port: !Ref Port  
+  ServiceLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ServiceLoadBalancerPublic
+      Port: !Ref Port  
+      Protocol: TCP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup
+Outputs:
+  ElbDNSName: 
+    Value: !GetAtt ServiceLoadBalancerPublic.DNSName
