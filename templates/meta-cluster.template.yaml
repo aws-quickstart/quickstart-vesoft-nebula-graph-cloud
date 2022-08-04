@@ -1,5 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: This template is used for setting up Meta nodes.
+Description: This template is used for setting up Meta nodes.(qs-1t9ums4lc)
+Metadata:
+  QSLint:
+    Exclusions: [ W9002, W9003, W9004, W9006 ]
 Parameters:
   IAMRoleName:
     Description: Name of the NebulaGraph IAM Role.

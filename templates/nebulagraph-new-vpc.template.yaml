@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Deploy NebulaGraph on Amazon Web Services in a new VPC.
+Description: Deploy NebulaGraph on Amazon Web Services in a new VPC. (qs-1t9ums4ht)
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
@@ -55,7 +55,7 @@ Metadata:
           - QSS3BucketRegion
           - QSS3KeyPrefix
     ParameterLabels:
-      AvailabilityZone:
+      AvailabilityZones:
         default: Availability Zones
       PrivateSubnet1CIDR:
         default: Private subnet 1 CIDR
@@ -664,7 +664,7 @@ Resources:
                   - s3:GetObject
                   - s3:DeleteObject
                   - s3:RestoreObject
-                Resource: !Sub arn:aws:s3:::*/*
+                Resource: !Sub arn:${AWS::Partition}:s3:::*/*
   NebulaGraphIAMProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:

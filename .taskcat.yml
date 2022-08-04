@@ -1,0 +1,53 @@
+project:
+  name: quickstart-vesoft-nebula-graph-cloud
+  owner: quickstart-eng@amazon.com
+  s3_regional_buckets: true
+  regions:
+  - ap-northeast-1
+  - ap-northeast-2
+  - ap-south-1
+  - ap-southeast-1
+  - ap-southeast-2
+  - ap-east-1
+  - ca-central-1
+  - eu-central-1
+  - eu-west-1
+  - eu-west-2
+  - eu-west-3
+  - me-south-1
+  - sa-east-1
+  - us-east-1
+  - us-east-2
+    #  - us-west-1
+  - us-west-2
+  template: templates/nebulagraph-new-vpc.template.yaml
+
+tests:
+  default:
+    parameters:
+      AvailabilityZones: $[taskcat_getaz_3]
+      KeyPairName: override
+      QSS3BucketName: $[taskcat_autobucket]
+      QSS3KeyPrefix: quickstart-keyrus-salesforce-reporting/
+      QSS3BucketRegion: $[taskcat_current_region]
+    regions:
+      - us-east-1
+  2-az-test:
+    parameters:
+      AvailabilityZones: $[taskcat_getaz_2]
+      KeyPairName: override
+      QSS3BucketName: $[taskcat_autobucket]
+      QSS3KeyPrefix: quickstart-keyrus-salesforce-reporting/
+      QSS3BucketRegion: $[taskcat_current_region]
+    regions:
+      - us-west-2
+  cn-test:
+    parameters:
+      AvailabilityZones: $[taskcat_getaz_2]
+      KeyPairName: override
+      QSS3BucketName: $[taskcat_autobucket]
+      QSS3KeyPrefix: quickstart-keyrus-salesforce-reporting/
+      QSS3BucketRegion: $[taskcat_current_region]
+    regions:
+      - cn-north-1
+      - cn-northwest-1
