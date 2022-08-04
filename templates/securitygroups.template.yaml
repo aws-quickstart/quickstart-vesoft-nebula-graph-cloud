@@ -1,8 +1,9 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: This template is used for setting up Security Groups.
+Description: This template is used for setting up Security Groups. (qs-1t9ums4k9)
 Metadata:
-  LICENSE: Apache License Version 2.0
+  QSLint:
+    Exclusions: [ W9002, W9003, W9004, W9006 ]
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:

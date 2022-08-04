@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Deploy NebulaGraph on Amazon Web Services in a new VPC.
+Description: Deploy NebulaGraph on Amazon Web Services in a new VPC. (qs-1t9ums4k2)
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:

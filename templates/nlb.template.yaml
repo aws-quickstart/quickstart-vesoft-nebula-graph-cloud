@@ -1,5 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: This stack deploys NLB for NebulaGraph cluster.
+Description: This stack deploys NLB for NebulaGraph cluster.(qs-1t9ums4m3)
+Metadata:
+  QSLint:
+    Exclusions: [ W9002, W9003, W9004, W9006 ]
 Parameters:
   VPCID:
     Description: VPC in which ELB will be placed.
@@ -37,16 +40,16 @@ Resources:
       VpcId: !Ref VPCID
       Targets:
       - Id: !Ref ExplorerInstanceID
-        Port: !Ref Port  
+        Port: !Ref Port
   ServiceLoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref ServiceLoadBalancerPublic
-      Port: !Ref Port  
+      Port: !Ref Port
       Protocol: TCP
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup
 Outputs:
-  ElbDNSName: 
+  ElbDNSName:
     Value: !GetAtt ServiceLoadBalancerPublic.DNSName

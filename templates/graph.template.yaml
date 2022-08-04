@@ -1,5 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description:  This template is used for setting up a single graph node.
+Description:  This template is used for setting up a single graph node.(qs-1t9ums4mn)
+Metadata:
+  QSLint:
+    Exclusions: [ W9002, W9003, W9004, W9006 ]
 Parameters:
   PrivateSubnetID:
     Description: ID of existing private subnet for the graph.

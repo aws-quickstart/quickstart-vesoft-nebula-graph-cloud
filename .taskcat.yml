@@ -20,7 +20,7 @@ project:
   - us-east-2
     #  - us-west-1
   - us-west-2
-  template: templates/nebulagraph-new-vpc-template.yaml
+  template: templates/nebulagraph-new-vpc.template.yaml
 
 tests:
   default:
