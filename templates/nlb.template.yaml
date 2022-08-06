@@ -34,7 +34,7 @@ Resources:
   NetworkLoadBalancerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub ${AWS::StackName}-nlb-target
+      Name: !Sub ${AWS::StackName}-tg
       Port: !Ref Port
       Protocol: TCP
       VpcId: !Ref VPCID

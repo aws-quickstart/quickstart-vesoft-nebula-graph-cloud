@@ -10,7 +10,7 @@ help() {
   echo "This script installs NebulaGraph on Ubuntu"
   echo ""
   echo "Options:"
-  echo "    -v      nebula version, default: 3.1.1"
+  echo "    -v      nebula version, default: 3.1.2"
   echo "    -c      nebula component, default: all"
   echo "    -l      nebula license"
   echo "    -m      nebula meta_server_address, default: 127.0.0.1:9559"
@@ -41,7 +41,7 @@ fi
 # Parameter handling
 #########################
 
-NEBULA_VERSION="3.1.1"
+NEBULA_VERSION="3.1.2"
 NEBULA_COMPONENT="all"
 NEBULA_LICENSE=""
 NEBULA_LICENSE_PATH="/usr/local/nebula/share/resources/nebula.license"
