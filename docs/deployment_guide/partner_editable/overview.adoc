@@ -1,5 +1,5 @@
-This Quick Start deploys {partner-product-name} on the AWS Cloud. This guide covers the steps necessary to deploy this Quick Start.
+This Quick Start reference deployment guide provides step-by-step instructions for deploying {partner-product-short-name} Enterprise Edition on the AWS Cloud.
 
-// For advanced information about the product, troubleshooting, or additional functionality, refer to the https://{quickstart-github-org}.github.io/{quickstart-project-name}/operational/index.html[Operational Guide^].
+AWS provides a secure infrastructure to run your {partner-product-name} with an enterprise-class architecture, high availability, and support for small, medium, and large databases.
 
-// For information about using this Quick Start for migrations, refer to the https://{quickstart-github-org}.github.io/{quickstart-project-name}/migration/index.html[Migration Guide^].
+This guide is for database administrators, enterprise architects, system administrators, and developers who would like to run their {partner-product-name} in a highly available Amazon Elastic Compute Cloud (Amazon EC2) environment.
