@@ -630,21 +630,24 @@ Resources:
         - PolicyName: nebulagraph-policy
           PolicyDocument:
             Statement:
-              - Effect: Allow
-                Action:
-                  - ec2:DescribeInstances
-                  - ec2:DescribeInstanceAttribute
-                  - ec2:DescribeAddresses
-                  - ec2:DescribeAddressesAttribute
-                  - ec2:DescribeSecurityGroups
-                  - ec2:DescribeNetworkInterfaceAttribute
-                  - s3:GetObjectVersion
-                  - s3:DeleteObjectVersion
-                  - s3:PutObject
-                  - s3:GetObject
-                  - s3:DeleteObject
-                  - s3:RestoreObject
-                Resource: '*'
+            - Effect: Allow
+              Action:
+                - ec2:DescribeInstances
+                - ec2:DescribeInstanceAttribute
+                - ec2:DescribeAddresses
+                - ec2:DescribeAddressesAttribute
+                - ec2:DescribeSecurityGroups
+                - ec2:DescribeNetworkInterfaceAttribute
+              Resource: !Sub arn:${AWS::Partition}:ec2:::*/*
+            - Effect: Allow
+              Action:
+                - s3:GetObjectVersion
+                - s3:DeleteObjectVersion
+                - s3:PutObject
+                - s3:GetObject
+                - s3:DeleteObject
+                - s3:RestoreObject
+              Resource: !Sub arn:${AWS::Partition}:s3:::*/*
   NebulaGraphIAMProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
