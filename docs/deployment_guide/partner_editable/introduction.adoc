@@ -1,1 +1,0 @@
-This Quick Start was created by the AWS Great China Region Solution team in collaboration with Amazon Web Services (AWS). Quick Starts are automated reference deployments that use AWS CloudFormation templates to deploy key technologies on AWS, following AWS best practices.
