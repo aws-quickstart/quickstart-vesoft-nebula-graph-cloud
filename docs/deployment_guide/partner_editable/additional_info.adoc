@@ -1,0 +1,30 @@
+== Best practices for using {partner-product-short-name} on AWS
+
+* https://docs.nebula-graph.io/3.1.0/8.service-tuning/2.graph-modeling/[Graph data modeling suggestions]
+* https://docs.nebula-graph.io/3.1.0/8.service-tuning/3.system-design/[System design suggestions]
+* https://docs.nebula-graph.io/3.1.0/8.service-tuning/super-node/[Processing super vertices]
+* https://docs.nebula-graph.io/3.1.0/8.service-tuning/practice/[Other best practices]
+
+== Other useful information
+
+See https://docs.nebula-graph.io/3.2.0/[{partner-product-short-name} documentation].
+
+== FAQ
+
+*Q.* I encountered a *CREATE_FAILED* error when I launched the Quick Start.
+
+*A.* If AWS CloudFormation fails to create the stack, relaunch the template with *Rollback on failure* set to *Disabled*. This setting is under *Advanced* in the AWS CloudFormation console on the *Configure stack options* page. With this setting, the stack’s state is retained, and the instance keeps running so that you can troubleshoot the issue. (For Windows, look at the log files in %ProgramFiles%\Amazon\EC2ConfigService and C:\cfn\log.)
+
+WARNING: When you set *Rollback on failure* to *Disabled*, you continue to incur AWS charges for this stack. Delete the stack when you finish troubleshooting.
+
+For more information, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html[Troubleshooting AWS CloudFormation].
+
+*Q.* I encountered a size-limitation error when I deployed the AWS CloudFormation templates.
+
+*A.* Launch the Quick Start templates from the links in this guide or from another S3 bucket. If you deploy the templates from a local copy on your computer or from a location other than an S3 bucket, you might encounter template-size limitations. For more information, see http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html[AWS CloudFormation quotas].
+
+For other {partner-product-short-name}-related questions, see https://docs.nebula-graph.io/3.2.0/20.appendix/0.FAQ/[{partner-product-short-name} FAQ].
+
+== Customer responsibility
+
+After you successfully deploy this Quick Start, confirm that your resources and services are updated and configured — including any required patches — to meet your security and other needs. For more information, see the https://aws.amazon.com/compliance/shared-responsibility-model/[AWS Shared Responsibility Model].

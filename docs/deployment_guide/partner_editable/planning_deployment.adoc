@@ -1,0 +1,57 @@
+=== Specialized knowledge
+
+This deployment requires a moderate level of familiarity with AWS services. If you're new to AWS, see https://aws.amazon.com/getting-started/[Getting Started Resource Center] and https://aws.amazon.com/training/[AWS Training and Certification]. These sites provide materials for learning how to design, deploy, and operate your infrastructure and applications on the AWS Cloud.
+
+This Quick Start assumes familiarity with https://aws.amazon.com/ec2/[Amazon EC2], https://aws.amazon.com/vpc/[Amazon Virtual Private Cloud (VPC)], https://aws.amazon.com/ebs/[Amazon Elastic Block Store (EBS)], and https://nebula-graph.io/[NebulaGraph].
+
+=== AWS account
+If you don't already have an AWS account, create one at https://aws.amazon.com by following the on-screen instructions. Part of the sign-up process involves receiving a phone call and entering a PIN using the phone keypad.
+
+Your AWS account is automatically signed up for all AWS services. You are charged only for the services you use.
+
+=== Technical requirements
+Before you launch the Quick Start, review the following information and ensure that your account is properly configured. Otherwise, deployment might fail.
+
+==== Resource quotas
+
+If necessary, request https://console.aws.amazon.com/servicequotas/home?region=us-east-2#!/[service quota increases] for the following resources. You might need to request increases if your existing deployment currently uses these resources and if this Quick Start deployment could result in exceeding the default quotas. The https://console.aws.amazon.com/servicequotas/home?region=us-east-2#!/[Service Quotas console] displays your usage and quotas for some aspects of some services. For more information, see https://docs.aws.amazon.com/servicequotas/latest/userguide/intro.html[What is Service Quotas] and https://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html[AWS service quotas].
+
+[cols="1,1"]
+|===
+| Resource | This deployment uses 
+| VPCs | 1
+| Elastic IP addresses | 5 to 13
+| Security groups | 2
+| AWS Identity and Access Management (IAM) roles | 2
+| Network Load Balancers | 1
+| EC2 instances (bastion host) | 1
+| EC2 instances (graphd hosts) | 1 to 3
+| EC2 instances (metad hosts) | 1 or 3
+| EC2 instances (storaged hosts) | 1 to 5
+|===
+
+==== Supported AWS Regions
+
+For any Quick Start to work in a Region other than its default Region, all the services it deploys must be supported in that Region. You can launch a Quick Start in any Region and see if it works. If you get an error such as “Unrecognized resource type,” the Quick Start is not supported in that Region.
+
+For an up-to-date list of AWS Regions and the AWS services they support, see https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/[AWS Regional Services].
+
+TIP: Certain Regions are available on an opt-in basis. For more information, see https://docs.aws.amazon.com/general/latest/gr/rande-manage.html[Managing AWS Regions].
+
+==== Amazon EC2 key pairs
+
+Ensure that at least one Amazon EC2 key pair exists in your AWS account in the Region where you plan to deploy the Quick Start. Note the key-pair name because you will use it during deployment. To create a key pair, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html[Amazon EC2 key pairs and Linux instances].
+
+For testing or proof-of-concept purposes, we recommend creating a new key pair instead of using one that's already being used by a production instance.
+
+==== IAM permissions
+
+Before launching the Quick Start, you must sign in to the AWS Management Console with IAM permissions for the resources that the templates deploy. The AdministratorAccess managed policy within IAM provides sufficient permissions, although your organization may choose to use a custom policy with more restrictions. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_job-functions.html[AWS managed policies for job functions].
+
+==== Prepare your AWS account
+
+Ensure that your account has the permissions required to create the resources listed in the https://confluence.nebula-graph.io/pages/viewpage.action?spaceKey=CDD&title=AWS+Quick+Start#resource-quotas[Resource quotas] section of this guide.
+
+==== Prepare for the deployment
+
+Obtain any necessary software licenses before you deploy this Quick Start. For details, see the Software licenses section of this guide.

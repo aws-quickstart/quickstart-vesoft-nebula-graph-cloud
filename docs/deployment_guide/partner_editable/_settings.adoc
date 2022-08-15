@@ -1,11 +1,11 @@
-:quickstart-project-name: quickstart-repo-name
+:quickstart-project-name: quickstart-vesoft-nebula-graph-cloud
 :quickstart-github-org: aws-quickstart
-:partner-product-name: Full Product Name
-:partner-product-short-name: Product Name
-:partner-company-name: Example Company Name, Ltd.
-:doc-month: January
+:partner-product-name: NebulaGraph database
+:partner-product-short-name: NebulaGraph
+:partner-company-name: vesoft inc.
+:doc-month: August
 :doc-year: 2022
-:partner-contributors: John Smith, {partner-company-name}
+:partner-contributors: Yao Zhou, {partner-company-name}
 // :other-contributors: Akua Mansa, Trek10
 :aws-contributors: Janine Singh, AWS IoT Partner team
 :aws-ia-contributors: Toni Jones, AWS Integration & Automation team

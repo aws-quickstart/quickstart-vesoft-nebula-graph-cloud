@@ -1,0 +1,5 @@
+NebulaGraph is a distributed, easily scalable, and native graph database. It is capable of hosting graphs with hundreds of billions of vertices and trillions of edges, and serving queries with millisecond-latency.
+
+NebulaGraph on AWS provides an easy way to deploy and explore NebulaGraph for the customers, with customizable configurations and integrated visualization tools.
+
+Quick Starts are automated reference deployments that use AWS CloudFormation templates. You use Quick Starts to launch, configure, and run the AWS compute, network, storage, and other services required to deploy a specific workload on AWS. This Quick Start helps you build a NebulaGraph Enterprise Edition database on AWS.
