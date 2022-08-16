@@ -42,13 +42,13 @@ tests:
       QSS3BucketRegion: $[taskcat_current_region]
     regions:
       - us-west-2
-  cn-test:
-    parameters:
-      AvailabilityZones: $[taskcat_getaz_2]
-      KeyPairName: override
-      QSS3BucketName: $[taskcat_autobucket]
-      QSS3KeyPrefix: quickstart-keyrus-salesforce-reporting/
-      QSS3BucketRegion: $[taskcat_current_region]
-    regions:
-      - cn-north-1
-      - cn-northwest-1
+  #cn-test:
+  #  parameters:
+  #    AvailabilityZones: $[taskcat_getaz_2]
+  #    KeyPairName: override
+  #    QSS3BucketName: $[taskcat_autobucket]
+ #     QSS3KeyPrefix: quickstart-keyrus-salesforce-reporting/
+  #    QSS3BucketRegion: $[taskcat_current_region]
+ #   regions:
+  #    - cn-north-1
+  #    - cn-northwest-1
