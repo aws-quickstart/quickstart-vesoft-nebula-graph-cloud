@@ -615,6 +615,13 @@ Resources:
         BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
   NebulaGraphIAMRole:
     Type: AWS::IAM::Role
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - EIAMPolicyActionWildcard
+          ignore_reasons:
+            EIAMPolicyActionWildcard: This is by design.
     Properties:
       AssumeRolePolicyDocument:
         Statement:
