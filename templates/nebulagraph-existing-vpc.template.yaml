@@ -593,8 +593,8 @@ Resources:
           - !Ref PrivateSubnet3AID
           - !Ref PrivateSubnet1AID
         SecurityGroupID: !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
-        IAMRoleName: !Ref NebulaGraphIAMRole
-        IAMProfileID: !Ref NebulaGraphIAMProfile
+        IAMRoleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
+        IAMProfileID: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
         KeyPairName: !Ref KeyPairName
         GraphInstanceType: !Ref GraphInstanceType
         GraphNodeCount: !Ref GraphNodeCount
@@ -626,8 +626,8 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters:
-        IAMRoleName: !Ref NebulaGraphIAMRole
-        IAMProfileID: !Ref NebulaGraphIAMProfile
+        IAMRoleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
+        IAMProfileID: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
         KeyPairName: !Ref KeyPairName
         MetaInstanceType: !Ref MetaInstanceType
         MetaNodeCount: !Ref MetaNodeCount
@@ -672,8 +672,8 @@ Resources:
           - !Ref PrivateSubnet3AID
           - !Ref PrivateSubnet1AID
         SecurityGroupID: !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
-        IAMRoleName: !Ref NebulaGraphIAMRole
-        IAMProfileID: !Ref NebulaGraphIAMProfile
+        IAMRoleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
+        IAMProfileID: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
         KeyPairName: !Ref KeyPairName
         StorageInstanceType: !Ref StorageInstanceType
         StorageNodeCount: !Ref StorageNodeCount
@@ -697,7 +697,7 @@ Resources:
       AWS::CloudFormation::Authentication:
         S3AccessCreds:
           type: S3
-          roleName: !Ref NebulaGraphIAMRole
+          roleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
           buckets: !If
             - UsingDefaultBucket
             - !Sub '${QSS3BucketName}-${AWS::Region}'
@@ -745,7 +745,7 @@ Resources:
         - AWSRegionArch2AMI
         - !Ref 'AWS::Region'
         - HVM64
-      IamInstanceProfile: !Ref NebulaGraphIAMProfile
+      IamInstanceProfile: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
       InstanceType: !Ref ExplorerInstanceType
       SubnetId: !Ref PublicSubnet1ID
       SecurityGroupIds:
