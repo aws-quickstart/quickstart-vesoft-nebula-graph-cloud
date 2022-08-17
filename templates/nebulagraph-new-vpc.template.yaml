@@ -595,6 +595,20 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3BucketRegion: !Ref QSS3BucketRegion
         QSS3KeyPrefix: !Sub '${QSS3KeyPrefix}submodules/quickstart-linux-bastion/'
+  IAMRoleStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Sub:
+          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/nebulagraph-iam.template.yaml
+          - S3Region: !If
+              - UsingDefaultBucket
+              - !Ref 'AWS::Region'
+              - !Ref QSS3BucketRegion
+            S3Bucket: !If
+              - UsingDefaultBucket
+              - !Sub '${QSS3BucketName}-${AWS::Region}'
+              - !Ref QSS3BucketName
   SecurityGroupStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -613,53 +627,6 @@ Resources:
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         VPCCIDR: !GetAtt VPCStack.Outputs.VPCCIDR
         BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
-  NebulaGraphIAMRole:
-    Type: AWS::IAM::Role
-    Metadata:
-      cfn-lint:
-        config:
-          ignore_checks:
-            - EIAMPolicyActionWildcard
-          ignore_reasons:
-            EIAMPolicyActionWildcard: This is by design.
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - !Sub ec2.${AWS::URLSuffix}
-            Action:
-              - sts:AssumeRole
-      Path: /
-      Policies:
-        - PolicyName: nebulagraph-policy
-          PolicyDocument:
-            Statement:
-            - Effect: Allow
-              Action:
-                - ec2:DescribeInstances
-                - ec2:DescribeInstanceAttribute
-                - ec2:DescribeAddresses
-                - ec2:DescribeAddressesAttribute
-                - ec2:DescribeSecurityGroups
-                - ec2:DescribeNetworkInterfaceAttribute
-              Resource: !Sub arn:${AWS::Partition}:ec2:::*/*
-            - Effect: Allow
-              Action:
-                - s3:GetObjectVersion
-                - s3:DeleteObjectVersion
-                - s3:PutObject
-                - s3:GetObject
-                - s3:DeleteObject
-                - s3:RestoreObject
-              Resource: !Sub arn:${AWS::Partition}:s3:::*/*
-  NebulaGraphIAMProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Path: /
-      Roles:
-        - !Ref 'NebulaGraphIAMRole'
   MetaInterfacesStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -711,8 +678,8 @@ Resources:
           - !GetAtt VPCStack.Outputs.PrivateSubnet3AID
           - !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         SecurityGroupID: !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
-        IAMRoleName: !Ref NebulaGraphIAMRole
-        IAMProfileID: !Ref NebulaGraphIAMProfile
+        IAMRoleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
+        IAMProfileID: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
         KeyPairName: !Ref KeyPairName
         GraphInstanceType: !Ref GraphInstanceType
         GraphNodeCount: !Ref GraphNodeCount
@@ -744,8 +711,8 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters:
-        IAMRoleName: !Ref NebulaGraphIAMRole
-        IAMProfileID: !Ref NebulaGraphIAMProfile
+        IAMRoleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
+        IAMProfileID: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
         KeyPairName: !Ref KeyPairName
         MetaInstanceType: !Ref MetaInstanceType
         MetaNodeCount: !Ref MetaNodeCount
@@ -790,8 +757,8 @@ Resources:
           - !GetAtt VPCStack.Outputs.PrivateSubnet3AID
           - !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         SecurityGroupID: !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
-        IAMRoleName: !Ref NebulaGraphIAMRole
-        IAMProfileID: !Ref NebulaGraphIAMProfile
+        IAMRoleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
+        IAMProfileID: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
         KeyPairName: !Ref KeyPairName
         StorageInstanceType: !Ref StorageInstanceType
         StorageNodeCount: !Ref StorageNodeCount
@@ -815,7 +782,7 @@ Resources:
       AWS::CloudFormation::Authentication:
         S3AccessCreds:
           type: S3
-          roleName: !Ref NebulaGraphIAMRole
+          roleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
           buckets: !If
             - UsingDefaultBucket
             - !Sub '${QSS3BucketName}-${AWS::Region}'
@@ -863,7 +830,7 @@ Resources:
         - AWSRegionArch2AMI
         - !Ref 'AWS::Region'
         - HVM64
-      IamInstanceProfile: !Ref NebulaGraphIAMProfile
+      IamInstanceProfile: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
       InstanceType: !Ref ExplorerInstanceType
       SubnetId: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
       SecurityGroupIds:
