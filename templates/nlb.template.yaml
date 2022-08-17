@@ -20,7 +20,6 @@ Resources:
   ServiceLoadBalancerPublic:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: !Sub ${AWS::StackName}-nlb
       Scheme: internet-facing
       Subnets: !Ref Subnets
       Type: network
@@ -34,7 +33,6 @@ Resources:
   NetworkLoadBalancerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub ${AWS::StackName}-nlb-target
       Port: !Ref Port
       Protocol: TCP
       VpcId: !Ref VPCID
