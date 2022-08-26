@@ -133,7 +133,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Condition: 3MetaNodesCondition
     Properties:
-      TemplateURL: !Sub 'https://https://${QSS3BucketName}.s3.${QSS3BucketRegion}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/meta.template.yaml'
+      TemplateURL: !Sub 'https://${QSS3BucketName}.s3.${QSS3BucketRegion}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/meta.template.yaml'
       Parameters:
         IAMRoleName: !Ref IAMRoleName
         IAMProfileID: !Ref IAMProfileID

@@ -51,7 +51,6 @@ Parameters:
       - c6a.24xlarge
       - c6a.32xlarge
       - c6a.48xlarge
-      - c6a.metal
       - c6i.large
       - c6i.xlarge
       - c6i.2xlarge
