@@ -11,7 +11,7 @@ help()
   echo "This script installs Nebula Graph Explorer on Ubuntu"
   echo ""
   echo "Options:"
-  echo "    -v      nebula explorer version, default: 3.0.1"
+  echo "    -v      nebula explorer version, default: 3.1.2"
   echo "    -l      nebula license"
 
   echo "    -h      view default help content"
@@ -41,7 +41,7 @@ fi
 # Parameter handling
 #########################
 
-EXPLORER_VERSION="3.0.1"
+EXPLORER_VERSION="3.1.2"
 NEBULA_LICENSE=""
 NEBULA_LICENSE_PATH="/usr/local/nebula-explorer/nebula.license"
 EXPLORER_SERVICE_PATH="/usr/local/nebula-explorer/lib/nebula-explorer.service"
@@ -80,7 +80,7 @@ install_explorer()
     log "[install_explorer] installing Nebula Graph Explorer ${EXPLORER_VERSION}"
 
     chmod +x nebula-download
-    ./nebula-download explorer
+    ./nebula-download explorer --version="${EXPLORER_VERSION}"
 
     local EXIT_CODE=$?
         if [[ $EXIT_CODE -ne 0 ]]; then
