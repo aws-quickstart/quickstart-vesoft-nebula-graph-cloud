@@ -54,7 +54,6 @@ Parameters:
       - m6a.24xlarge
       - m6a.32xlarge
       - m6a.48xlarge
-      - m6a.metal
       - m5a.large
       - m5a.xlarge
       - m5a.2xlarge
@@ -108,8 +107,8 @@ Parameters:
   VolumeSize:
     Description: EBS Volume Size (data) to be attached to node in GBs.
     Type: Number
-    Default: 20
-    MinValue: 20
+    Default: 10
+    MinValue: 10
     MaxValue: 40
   VolumeType:
     Description: EBS Volume Type (data) to be attached to node in GBs [gp2,gp3,io1,io2].

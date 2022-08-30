@@ -14,6 +14,7 @@ Metadata:
           - PrivateSubnet3AID
           - PublicSubnet1ID
           - RemoteAccessCIDR
+          - AccessCIDR
       - Label:
           default: Amazon EC2 configuration
         Parameters:
@@ -65,6 +66,8 @@ Metadata:
         default: Public subnet 1 ID
       RemoteAccessCIDR:
         default: Allowed bastion external access CIDR
+      AccessCIDR:
+        default: Permitted IP range
       KeyPairName:
         default: Key-pair name
       BastionAMIOS:
@@ -133,7 +136,13 @@ Parameters:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x.
     Description: Allowed CIDR block for external Secure Shell (SSH) access to bastion hosts.
-    Default: 0.0.0.0/0
+    Default: 10.0.0.0/16
+    Type: String
+  AccessCIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
+    Description: CIDR IP range permitted to access NebulaGraph instances. A value of 0.0.0.0/0 allows access from any IP address.
+    Default: 10.0.0.0/16
     Type: String
   KeyPairName:
     Description: Key pairs allow you to connect to your instance after it launches.
@@ -210,7 +219,6 @@ Parameters:
       - m6a.24xlarge
       - m6a.32xlarge
       - m6a.48xlarge
-      - m6a.metal
       - m5a.large
       - m5a.xlarge
       - m5a.2xlarge
@@ -263,10 +271,10 @@ Parameters:
       - io1
       - io2
   GraphVolumeSize:
-    Description: 'Amazon EBS data-volume to be attached to Graph node in GBs, range of values [20-40].'
+    Description: 'Amazon EBS data-volume to be attached to Graph node in GBs, range of values [10-40].'
     Type: Number
-    Default: 20
-    MinValue: 20
+    Default: 10
+    MinValue: 10
     MaxValue: 40
   MetaNodeCount:
     AllowedValues:
@@ -524,7 +532,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters:
-        AccessCIDR: !Ref RemoteAccessCIDR
+        AccessCIDR: !Ref AccessCIDR
         VPCID: !Ref VPCID
         VPCCIDR: !Ref VPCCIDR
         BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
@@ -747,7 +755,7 @@ Resources:
         - HVM64
       IamInstanceProfile: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
       InstanceType: !Ref ExplorerInstanceType
-      SubnetId: !Ref PublicSubnet1ID
+      SubnetId: !Ref PrivateSubnet1AID
       SecurityGroupIds:
         - !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
       BlockDeviceMappings:
@@ -822,7 +830,7 @@ Outputs:
   ExplorerPortal:
     Condition: EnableExplorerCondition
     Description: The Explorer service web portal.
-    Value: !Sub [ 'http://${ExplorerNodeIP}:7002', { ExplorerNodeIP: !GetAtt ExplorerInstance.PublicIp } ]
+    Value: !Sub [ 'http://${ElbDNSName}:7002', { ElbDNSName: !GetAtt NlbStack.Outputs.ElbDNSName } ]
   GraphPrivteIP1:
     Description: Private IP Address of Graph Node 1
     Value: !GetAtt GraphNodesStack.Outputs.GraphInstance1PrivateIP

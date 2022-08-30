@@ -16,6 +16,7 @@ Metadata:
           - PublicSubnet2CIDR
           - PublicSubnet3CIDR
           - RemoteAccessCIDR
+          - AccessCIDR
       - Label:
           default: Amazon EC2 configuration
         Parameters:
@@ -71,6 +72,8 @@ Metadata:
         default: VPC CIDR
       RemoteAccessCIDR:
         default: Allowed bastion external access CIDR
+      AccessCIDR:
+        default: Permitted IP range
       KeyPairName:
         default: Key-pair name
       BastionAMIOS:
@@ -166,6 +169,12 @@ Parameters:
     Description: Allowed CIDR block for external Secure Shell (SSH) access to bastion hosts.
     Default: 10.0.0.0/16
     Type: String
+  AccessCIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
+    Description: CIDR IP range permitted to access NebulaGraph instances. A value of 0.0.0.0/0 allows access from any IP address.
+    Default: 10.0.0.0/16
+    Type: String
   KeyPairName:
     Description: Key pairs allow you to connect to your instance after it launches.
     Type: AWS::EC2::KeyPair::KeyName
@@ -241,7 +250,6 @@ Parameters:
       - m6a.24xlarge
       - m6a.32xlarge
       - m6a.48xlarge
-      - m6a.metal
       - m5a.large
       - m5a.xlarge
       - m5a.2xlarge
@@ -294,10 +302,10 @@ Parameters:
       - io1
       - io2
   GraphVolumeSize:
-    Description: 'Amazon EBS data-volume to be attached to Graph node in GBs, range of values [20-40].'
+    Description: 'Amazon EBS data-volume to be attached to Graph node in GBs, range of values [10-40].'
     Type: Number
-    Default: 20
-    MinValue: 20
+    Default: 10
+    MinValue: 10
     MaxValue: 40
   MetaNodeCount:
     AllowedValues:
@@ -624,6 +632,7 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters:
+        AccessCIDR: !Ref AccessCIDR
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         VPCCIDR: !GetAtt VPCStack.Outputs.VPCCIDR
         BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
