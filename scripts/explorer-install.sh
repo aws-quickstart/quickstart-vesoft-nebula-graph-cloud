@@ -12,8 +12,6 @@ help()
   echo ""
   echo "Options:"
   echo "    -v      nebula explorer version, default: 3.1.2"
-  echo "    -l      nebula license"
-
   echo "    -h      view default help content"
 }
 
@@ -42,19 +40,15 @@ fi
 #########################
 
 EXPLORER_VERSION="3.1.2"
-NEBULA_LICENSE=""
 NEBULA_LICENSE_PATH="/usr/local/nebula-explorer/nebula.license"
 EXPLORER_SERVICE_PATH="/usr/local/nebula-explorer/lib/nebula-explorer.service"
 
 #Loop through options passed
-while getopts :v:l:h optname; do
+while getopts :v:h optname; do
   log "Option ${optname} set"
   case $optname in
   v) # set nebula version
     EXPLORER_VERSION="${OPTARG}"
-    ;;
-  l) #set nebula license
-    NEBULA_LICENSE="${OPTARG}"
     ;;
   h) #show help
     help

@@ -46,6 +46,11 @@ Metadata:
           - EnableExplorer
           - ExplorerInstanceType
       - Label:
+          default: Dashboard configuration
+        Parameters:
+          - EnableDashboard
+          - DashboardInstanceType
+      - Label:
           default: Quick Start configuration
         Parameters:
           - QSS3BucketName
@@ -104,6 +109,10 @@ Metadata:
         default: Enable Explorer
       ExplorerInstanceType:
         default: Explorer Instance Type
+      EnableDashboard:
+        default: Enable Dashboard
+      DashboardInstanceType:
+        default: Dashboard Instance Type
       QSS3BucketName:
         default: Quick Start S3 bucket name
       QSS3BucketRegion:
@@ -389,7 +398,7 @@ Parameters:
   ExplorerInstanceType:
     Description: Amazon EC2 instance type for NebulaGraph Explorer node.
     Type: String
-    Default: m5.large
+    Default: t3.medium
     AllowedValues:
       - t3.medium
       - t3.large
@@ -409,6 +418,34 @@ Parameters:
       - c5.4xlarge
   EnableExplorer:
     Description: If false, the Explorer node will not be created, default true.
+    Type: String
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'true'
+  DashboardInstanceType:
+    Description: Amazon EC2 instance type for NebulaGraph Dashboard node.
+    Type: String
+    Default: t3.medium
+    AllowedValues:
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5a.large
+      - m5a.xlarge
+      - m5a.2xlarge
+      - m5a.4xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+  EnableDashboard:
+    Description: If false, the Dashboard node will not be created, default true.
     Type: String
     AllowedValues:
       - 'true'
@@ -487,6 +524,10 @@ Mappings:
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
   EnableExplorerCondition: !Equals [!Ref EnableExplorer, 'true']
+  EnableDashboardCondition: !Equals [!Ref EnableDashboard, 'true']
+  EnableNLBCondition: !Or
+    - !Equals [!Ref EnableExplorer, 'true']
+    - !Equals [!Ref EnableDashboard, 'true']
   3MetaNodesCondition: !Equals [!Ref MetaNodeCount, '3']
 Resources:
   BastionStack:
@@ -801,8 +842,111 @@ Resources:
       ResourceSignal:
         Count: 1
         Timeout: 'PT5M'
+  DashboardInstance:
+    Condition: EnableDashboardCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
+          buckets: !If
+            - UsingDefaultBucket
+            - !Sub '${QSS3BucketName}-${AWS::Region}'
+            - !Ref QSS3BucketName
+      AWS::CloudFormation::Init:
+        config:
+          files:
+            /tmp/dashboard-install.sh:
+              source:
+                Fn::Sub:
+                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/dashboard-install.sh
+                  - S3Bucket: !If
+                      - UsingDefaultBucket
+                      - !Sub '${QSS3BucketName}-${AWS::Region}'
+                      - !Ref 'QSS3BucketName'
+                    S3Region: !If
+                      - UsingDefaultBucket
+                      - !Ref 'AWS::Region'
+                      - !Ref 'QSS3BucketRegion'
+              mode: '000550'
+              owner: root
+              group: root
+            /tmp/nebula-download:
+              source:
+                Fn::Sub:
+                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/nebula-download
+                  - S3Bucket: !If
+                      - UsingDefaultBucket
+                      - !Sub '${QSS3BucketName}-${AWS::Region}'
+                      - !Ref 'QSS3BucketName'
+                    S3Region: !If
+                      - UsingDefaultBucket
+                      - !Ref 'AWS::Region'
+                      - !Ref 'QSS3BucketRegion'
+              mode: '000550'
+              owner: root
+              group: root
+          commands:
+            01-install-dashboard:
+              cwd: '/tmp/'
+              command: 'cd /tmp; sudo dos2unix *.sh; sudo bash dashboard-install.sh'
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !FindInMap
+        - AWSRegionArch2AMI
+        - !Ref 'AWS::Region'
+        - HVM64
+      IamInstanceProfile: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
+      InstanceType: !Ref DashboardInstanceType
+      SubnetId: !Ref PrivateSubnet1AID
+      SecurityGroupIds:
+        - !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: '80'
+            VolumeType: gp2
+            DeleteOnTermination: true
+            Encrypted: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-Dashboard
+        - Key: AppName
+          Value: 'NebulaDashboard'
+      UserData: !Base64
+        Fn::Sub: |
+          #!/bin/bash -xe
+
+          export PATH=$PATH:/usr/local/bin
+
+          cfn_fail()
+          {
+              cfn-signal -e 1 --stack ${AWS::StackId} --region ${AWS::Region} --resource DashboardInstance
+              exit 1
+          }
+
+          cfn_success()
+          {
+              cfn-signal -e 0 --stack ${AWS::StackId} --region ${AWS::Region} --resource DashboardInstance
+              exit 0
+          }
+          apt update -y
+          apt install git dos2unix -y
+          until git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git ; do echo "Retrying"; done
+          cd quickstart-linux-utilities
+          source quickstart-cfn-tools.source
+          qs_update-os || qs_err
+          qs_bootstrap_pip || qs_err " pip bootstrap failed "
+          qs_aws-cfn-bootstrap || qs_err " cfn bootstrap failed "
+          cfn-init -v --stack ${AWS::StackId} --resource DashboardInstance --region ${AWS::Region} || cfn_fail
+          [ $(qs_status) == 0 ] && cfn_success || cfn_fail
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: 'PT5M'
   NlbStack:
-    Condition: EnableExplorerCondition
+    Condition: EnableNLBCondition
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
@@ -821,8 +965,19 @@ Resources:
         Subnets: !Join
           - ','
           - [!Ref PublicSubnet1ID]
-        Port: '7002'
-        ExplorerInstanceID: !Ref ExplorerInstance
+        EnableExplorer: !Ref EnableExplorer
+        ExplorerPort: '7002'
+        ExplorerInstanceID: !If
+          - EnableExplorerCondition
+          - !Ref ExplorerInstance
+          - ''
+        EnableDashboard: !Ref EnableDashboard
+        DashboardPort: '7005'
+        DashboardInstanceID: !If
+          - EnableDashboardCondition
+          - !Ref DashboardInstance
+          - ''
+
 Outputs:
   BastionEIP:
     Description: Elastic IP for Bastion
@@ -831,6 +986,10 @@ Outputs:
     Condition: EnableExplorerCondition
     Description: The Explorer service web portal.
     Value: !Sub [ 'http://${ElbDNSName}:7002', { ElbDNSName: !GetAtt NlbStack.Outputs.ElbDNSName } ]
+  DashboardPortal:
+    Condition: EnableDashboardCondition
+    Description: The Dashboard service web portal.
+    Value: !Sub [ 'http://${ElbDNSName}:7005', { ElbDNSName: !GetAtt NlbStack.Outputs.ElbDNSName } ]
   GraphPrivteIP1:
     Description: Private IP Address of Graph Node 1
     Value: !GetAtt GraphNodesStack.Outputs.GraphInstance1PrivateIP

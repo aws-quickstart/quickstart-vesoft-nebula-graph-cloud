@@ -10,12 +10,27 @@ Parameters:
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Subnets in which ELB will be created. Select all AZs/Subnet.
-  Port:
+  EnableExplorer:
     Type: String
-    Description: Service port.
+    Description: Enable Explorer service.
+  ExplorerPort:
+    Type: String
+    Description: Explorer portal port.
   ExplorerInstanceID:
     Type: String
-    Description: Choose EC2 instance.
+    Description: Explorer instance id.
+  EnableDashboard:
+    Type: String
+    Description: Enable Dashboard service.
+  DashboardPort:
+    Type: String
+    Description: Dashboard portal port.
+  DashboardInstanceID:
+    Type: String
+    Description: Dashboard instance id.
+Conditions:
+  EnableExplorerCondition: !Equals [!Ref EnableExplorer, 'true']
+  EnableDashboardCondition: !Equals [!Ref EnableDashboard, 'true']
 Resources:
   ServiceLoadBalancerPublic:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -30,24 +45,46 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-nlb
-  NetworkLoadBalancerTargetGroup:
+  ExplorerTargetGroup:
+    Condition: EnableExplorerCondition
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Port: !Ref Port
+      Port: !Ref ExplorerPort
       Protocol: TCP
       VpcId: !Ref VPCID
       Targets:
       - Id: !Ref ExplorerInstanceID
-        Port: !Ref Port
-  ServiceLoadBalancerListener:
+        Port: !Ref ExplorerPort
+  ExplorerListener:
+    Condition: EnableExplorerCondition
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref ServiceLoadBalancerPublic
-      Port: !Ref Port
+      Port: !Ref ExplorerPort
       Protocol: TCP
       DefaultActions:
         - Type: forward
-          TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup
+          TargetGroupArn: !Ref ExplorerTargetGroup
+  DashboardTargetGroup:
+    Condition: EnableDashboardCondition
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: !Ref DashboardPort
+      Protocol: TCP
+      VpcId: !Ref VPCID
+      Targets:
+        - Id: !Ref DashboardInstanceID
+          Port: !Ref DashboardPort
+  DashboardListener:
+    Condition: EnableDashboardCondition
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ServiceLoadBalancerPublic
+      Port: !Ref DashboardPort
+      Protocol: TCP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref DashboardTargetGroup
 Outputs:
   ElbDNSName:
     Value: !GetAtt ServiceLoadBalancerPublic.DNSName
