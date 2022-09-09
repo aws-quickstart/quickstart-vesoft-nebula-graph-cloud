@@ -1,4 +1,4 @@
-This Quick Start deploys {partner-product-name} on the AWS Cloud. This guide covers the steps necessary to deploy this Quick Start.
+This Quick Start deploys {partner-product-name} on the AWS Cloud. It's designed to provide data scientists and other customers an efficient way to deploy {partner-product-short-name} and explore its customizable configurations and integrated visualization tools. Developed by Vesoft, {partner-product-short-name} provides customers a distributed, scalable, and native graph database with all the needed components to run on AWS.
 
 // For advanced information about the product, troubleshooting, or additional functionality, refer to the https://{quickstart-github-org}.github.io/{quickstart-project-name}/operational/index.html[Operational Guide^].
 

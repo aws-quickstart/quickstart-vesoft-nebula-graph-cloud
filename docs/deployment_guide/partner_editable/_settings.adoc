@@ -1,8 +1,8 @@
 :quickstart-project-name: quickstart-vesoft-nebula-graph-cloud
 :quickstart-github-org: aws-quickstart
-:partner-product-name: NebulaGraph database
-:partner-product-short-name: NebulaGraph
-:partner-company-name: vesoft inc.
+:partner-product-name: Nebula Graph Database
+:partner-product-short-name: Nebula Graph
+:partner-company-name: Vesoft Inc.
 :doc-month: September
 :doc-year: 2022
 :partner-contributors: Yao Zhou, {partner-company-name}

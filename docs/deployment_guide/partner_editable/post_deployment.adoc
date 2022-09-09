@@ -4,11 +4,11 @@
 
 === Best practices for using {partner-product-short-name} on AWS
 
-* https://docs.nebula-graph.io/3.1.0/8.service-tuning/2.graph-modeling/[Graph data modeling suggestions]
-* https://docs.nebula-graph.io/3.1.0/8.service-tuning/3.system-design/[System design suggestions]
-* https://docs.nebula-graph.io/3.1.0/8.service-tuning/super-node/[Processing super vertices]
-* https://docs.nebula-graph.io/3.1.0/8.service-tuning/practice/[Other best practices]
+* https://docs.nebula-graph.io/3.1.0/8.service-tuning/2.graph-modeling/[Graph data modeling suggestions^]
+* https://docs.nebula-graph.io/3.1.0/8.service-tuning/3.system-design/[System design suggestions^]
+* https://docs.nebula-graph.io/3.1.0/8.service-tuning/super-node/[Processing super vertices^]
+* https://docs.nebula-graph.io/3.1.0/8.service-tuning/practice/[Other best practices^]
 
 === Other useful information
 
-See https://docs.nebula-graph.io/3.2.0/[{partner-product-short-name} documentation].
+See https://docs.nebula-graph.io/3.2.0/[{partner-product-short-name} documentation^].
