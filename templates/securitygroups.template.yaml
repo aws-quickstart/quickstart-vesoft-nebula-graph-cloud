@@ -52,6 +52,10 @@ Resources:
           FromPort: 7002
           ToPort: 7002
           CidrIp: !Ref AccessCIDR
+        - IpProtocol: tcp
+          FromPort: 7005
+          ToPort: 7005
+          CidrIp: !Ref AccessCIDR
         - IpProtocol: -1
           CidrIp: !Ref VPCCIDR
         - IpProtocol: icmp

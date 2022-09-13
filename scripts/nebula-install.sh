@@ -12,7 +12,6 @@ help() {
   echo "Options:"
   echo "    -v      nebula version, default: 3.1.2"
   echo "    -c      nebula component, default: all"
-  echo "    -l      nebula license"
   echo "    -m      nebula meta_server_address, default: 127.0.0.1:9559"
 
   echo "    -h      view default help content"
@@ -43,7 +42,6 @@ fi
 
 NEBULA_VERSION="3.1.2"
 NEBULA_COMPONENT="all"
-NEBULA_LICENSE=""
 NEBULA_LICENSE_PATH="/usr/local/nebula/share/resources/nebula.license"
 
 #LOCAL_IP=$(ip addr | awk /"$(ip route | awk '/default/ { print $5 }')"/ | awk '/inet/ { print $2 }' | cut -f 1 -d "/")
@@ -114,7 +112,7 @@ STORAGED_SERVICE="[Unit]
                   WantedBy=multi-user.target"
 
 #Loop through options passed
-while getopts :v:c:m:l:h optname; do
+while getopts :v:c:m:h optname; do
   log "Option ${optname} set"
   case $optname in
   v) #set nebula version
@@ -125,9 +123,6 @@ while getopts :v:c:m:l:h optname; do
     ;;
   m) #set meta_server_address
     META_SERVER_ADDRESS="${OPTARG}"
-    ;;
-  l) #set nebula license
-    NEBULA_LICENSE="${OPTARG}"
     ;;
   h) #show help
     help
