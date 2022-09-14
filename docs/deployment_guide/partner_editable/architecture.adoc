@@ -1,0 +1,35 @@
+:xrefstyle: short
+
+Deploying this Quick Start with default parameters builds the following {partner-product-short-name} environment in the
+AWS Cloud.
+
+// Replace this example diagram with your own. Follow our wiki guidelines: https://w.amazon.com/bin/view/AWS_Quick_Starts/Process_for_PSAs/#HPrepareyourarchitecturediagram. Upload your source PowerPoint file to the GitHub {deployment name}/docs/images/ directory in its repository.
+
+[#architecture1]
+.Quick Start architecture for {partner-product-short-name} on AWS
+image::../docs/deployment_guide/images/vesoft-nebula-graph-architecture-diagram.png[Architecture]
+
+As shown in <<architecture1>>, this Quick Start sets up the following:
+
+* A highly available architecture that spans three Availability Zones.*
+* A virtual private cloud (VPC) configured with public and private subnets, according to AWS
+best practices, to provide you with your own virtual network on AWS.*
+* An internet gateway to allow internet access for bastion hosts (not shown).*
+* A Network Load Balancer for balancing incoming traffic across multiple hosts.*
+
+In the public subnets:
+
+* Managed network address translation (NAT) gateways to allow outbound
+internet access for resources in the private subnets.*
+* A Linux bastion host to allow inbound Secure
+Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in public and private subnets.*
+* A {partner-product-short-name} Explorer server for visualized exploration of {partner-product-short-name} data.
+
+In the private subnets:
+
+* {partner-product-short-name} Graph Service supported by graphd processes. Each graphd process runs in one subnet.
+* {partner-product-short-name} Meta Service supported by metad processes. Each metad process runs in one subnet.
+* {partner-product-short-name} Storage Service supported by nebula-storaged processes. The storaged processes are distributed in different subnets automatically.
+* An Amazon Elastic Block Store (Amazon EBS) storage volume for EC2 instances in each subnet.
+
+[.small]#* The template that deploys this Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.#
