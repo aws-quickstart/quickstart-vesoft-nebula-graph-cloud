@@ -74,7 +74,7 @@ Metadata:
       AccessCIDR:
         default: Permitted IP range
       KeyPairName:
-        default: Key-pair name
+        default: Key pair name
       BastionAMIOS:
         default: Bastion AMI OS
       BastionInstanceType:
@@ -84,7 +84,7 @@ Metadata:
       GraphNodeCount:
         default: Number of Graph nodes
       GraphInstanceType:
-        default: Graph Node Instance Type
+        default: Graph Node instance type
       GraphVolumeType:
         default: Volume type of Graph nodes
       GraphVolumeSize:
@@ -92,7 +92,7 @@ Metadata:
       MetaNodeCount:
         default: Number of Meta nodes
       MetaInstanceType:
-        default: Meta Node Instance Type
+        default: Meta Node instance type
       MetaVolumeType:
         default: Volume type of Meta nodes
       MetaVolumeSize:
@@ -100,7 +100,7 @@ Metadata:
       StorageNodeCount:
         default: Number of Storage nodes
       StorageInstanceType:
-        default: Storage Node Instance Type
+        default: Storage Node instance type
       StorageVolumeType:
         default: Volume type of Storage nodes
       StorageVolumeSize:
@@ -108,11 +108,11 @@ Metadata:
       EnableExplorer:
         default: Enable Explorer
       ExplorerInstanceType:
-        default: Explorer Instance Type
+        default: Explorer instance type
       EnableDashboard:
         default: Enable Dashboard
       DashboardInstanceType:
-        default: Dashboard Instance Type
+        default: Dashboard instance type
       QSS3BucketName:
         default: Quick Start S3 bucket name
       QSS3BucketRegion:
@@ -133,10 +133,10 @@ Parameters:
     Description: Private subnet 1 ID.
     Type: String
   PrivateSubnet2AID:
-    Description: (Please ignore if the number of Meta nodes is 1)Private subnet 2 ID.
+    Description: (Ignore if the number of Meta nodes is 1) Private subnet 2 ID.
     Type: String
   PrivateSubnet3AID:
-    Description: (Please ignore if the number of Meta nodes is 1)Private subnet 3 ID.
+    Description: (Ignore if the number of Meta nodes is 1) Private subnet 3 ID.
     Type: String
   PublicSubnet1ID:
     Description:  Public subnet 1 ID.
@@ -163,7 +163,7 @@ Parameters:
       - Ubuntu-Server-20.04-LTS-HVM
       - SUSE-SLES-15-HVM
     Default: Amazon-Linux2-HVM
-    Description: Linux distribution for the AMI to be used for bastion instances.
+    Description: Linux distribution for the AMI used for bastion instances.
     Type: String
   BastionInstanceType:
     AllowedValues:
@@ -198,7 +198,7 @@ Parameters:
       - 2
       - 3
     Default: 1
-    Description: Number of Graph nodes. It is strongly recommended to have a minimum 2 Graph nodes in order to ensure high availability.
+    Description: Number of Graph nodes. A minimum 2 Graph nodes is recommended to ensure high availability.
     Type: Number
   GraphInstanceType:
     Description: Amazon EC2 instance type for the Graph nodes.
@@ -290,7 +290,7 @@ Parameters:
       - 1
       - 3
     Default: 1
-    Description: Number of Meta nodes.  It is strongly recommended to have a 3 meta nodes in order to ensure high availability.
+    Description: Number of Meta nodes. Three Meta nodes are recommended to ensure high availability.
     Type: Number
   MetaInstanceType:
     Description: Amazon EC2 instance type for the Meta nodes.
@@ -417,7 +417,7 @@ Parameters:
       - c5.2xlarge
       - c5.4xlarge
   EnableExplorer:
-    Description: If false, the Explorer node will not be created, default true.
+    Description: If false, the Explorer node will not be created. Default value is true.
     Type: String
     AllowedValues:
       - 'true'
@@ -445,7 +445,7 @@ Parameters:
       - c5.2xlarge
       - c5.4xlarge
   EnableDashboard:
-    Description: If false, the Dashboard node will not be created, default true.
+    Description: If false, the Dashboard node will not be created. Default value is true.
     Type: String
     AllowedValues:
       - 'true'
@@ -453,27 +453,31 @@ Parameters:
     Default: 'true'
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
-    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
-      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
-      (-).
+    ConstraintDescription: The S3 bucket name can include numbers, lowercase letters,
+      and hyphens (-), but it cannot start or end with a hyphen.
     Default: aws-quickstart
-    Description: S3 bucket name for the Quick Start assets. This string can include
-      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
-      or end with a hyphen (-).
+    Description: Name of the S3 bucket for your copy of the deployment assets. Keep the default
+      name unless you are customizing the template. Changing the name updates code
+      references to point to a new location.
     Type: String
   QSS3KeyPrefix:
     AllowedPattern: ^[0-9a-zA-Z-/.]*$
-    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
-      uppercase letters, hyphens (-), and forward slashes (/).
+    ConstraintDescription: The S3 key prefix can include numbers, lowercase letters, uppercase letters,
+      hyphens (-), underscores (_), periods (.), asterisks (*), single quotes ('),
+      open parenthesis ((), close parenthesis ()), and forward slashes (/). End the
+      prefix with a forward slash.
     Default: quickstart-vesoft-nebula-graph-cloud/
-    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
-      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
-      forward slashes (/).
+    Description: S3 key prefix that is used to simulate a folder for your copy of the
+      deployment assets. Keep the default prefix unless you are customizing
+      the template. Changing the prefix updates code references to point to
+      a new location.
     Type: String
   QSS3BucketRegion:
     Default: 'us-east-1'
-    Description: Amazon Region where the Quick Start S3 bucket (QSS3BucketName) is
-      hosted. If you use your own bucket, you must specify this value.
+    Description: AWS Region where the S3 bucket (QSS3BucketName) is hosted. Keep
+      the default Region unless you are customizing the template. Changing the Region
+      updates code references to point to a new location. When using your own bucket,
+      specify the Region.
     Type: String
 Mappings:
   AWSRegionArch2AMI:
@@ -980,7 +984,7 @@ Resources:
 
 Outputs:
   BastionEIP:
-    Description: Elastic IP for Bastion
+    Description: Elastic IP for bastion host.
     Value: !GetAtt BastionStack.Outputs.EIP1
   ExplorerPortal:
     Condition: EnableExplorerCondition
@@ -991,11 +995,11 @@ Outputs:
     Description: The Dashboard service web portal.
     Value: !Sub [ 'http://${ElbDNSName}:7005', { ElbDNSName: !GetAtt NlbStack.Outputs.ElbDNSName } ]
   GraphPrivteIP1:
-    Description: Private IP Address of Graph Node 1
+    Description: Private IP address of Graph node 1.
     Value: !GetAtt GraphNodesStack.Outputs.GraphInstance1PrivateIP
   GraphPrivteIP2:
-    Description: Private IP Address of Graph Node 2
+    Description: Private IP address of Graph node 2.
     Value: !GetAtt GraphNodesStack.Outputs.GraphInstance2PrivateIP
   GraphPrivteIP3:
-    Description: Private IP Address of Graph Node 3
+    Description: Private IP address of Graph node 3.
     Value: !GetAtt GraphNodesStack.Outputs.GraphInstance3PrivateIP
