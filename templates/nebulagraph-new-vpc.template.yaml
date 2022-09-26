@@ -1078,7 +1078,7 @@ Outputs:
   DashboardPortal:
     Condition: EnableDashboardCondition
     Description: The Dashboard service web portal.
-    Value: !Sub [ 'http://${ElbDNSName}:7005', { ElbDNSName: !GetAtt NlbStack.Outputs.ElbDNSName } ]
+    Value: !Sub [ 'http://${ElbDNSName}:7005?lang=EN_US', { ElbDNSName: !GetAtt NlbStack.Outputs.ElbDNSName } ]
   GraphPrivteIP1:
     Description: Private IP address of Graph node 1.
     Value: !GetAtt GraphNodesStack.Outputs.GraphInstance1PrivateIP

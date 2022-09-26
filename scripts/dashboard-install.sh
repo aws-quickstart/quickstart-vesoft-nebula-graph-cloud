@@ -41,8 +41,85 @@ fi
 #########################
 
 DASHBOARD_VERSION="3.1.3"
-DASHBOARD_PATH="/usr/local/nebula-dashboard"
-NEBULA_LICENSE_PATH="${DASHBOARD_PATH}/nebula-dashboard-ent/nebula.license"
+DASHBOARD_PATH="/usr/local/nebula-dashboard-ent"
+NEBULA_LICENSE_PATH="${DASHBOARD_PATH}/nebula.license"
+
+SYSTEMD_PATH="/usr/lib/systemd/system"
+
+ALERT_MANAGER_SERVICE="[Unit]
+Description=Nebula Dashboard Alert Manager
+After=network.target
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=10s
+PIDFile=$DASHBOARD_PATH/pids/alertmanager.pid
+ExecStart=$DASHBOARD_PATH/scripts/dashboard.service start alertmanager
+ExecReload=$DASHBOARD_PATH/scripts/dashboard.service restart alertmanager
+ExecStop=$DASHBOARD_PATH/scripts/dashboard.service stop alertmanager
+
+[Install]
+WantedBy=multi-user.target"
+
+PROMETHEUS_SERVICE="[Unit]
+Description=Nebula Dashboard Prometheus
+After=network.target
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=10s
+PIDFile=$DASHBOARD_PATH/pids/prometheus.pid
+ExecStart=$DASHBOARD_PATH/scripts/dashboard.service start prometheus
+ExecReload=$DASHBOARD_PATH/scripts/dashboard.service restart prometheus
+ExecStop=$DASHBOARD_PATH/scripts/dashboard.service stop prometheus
+
+[Install]
+WantedBy=multi-user.target"
+
+EXPORTER_SERVICE="[Unit]
+Description=Nebula Dashboard Prometheus
+After=network.target
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=10s
+PIDFile=$DASHBOARD_PATH/pids/nebula-stats-exporter.pid
+ExecStart=$DASHBOARD_PATH/scripts/dashboard.service start exporter
+ExecReload=$DASHBOARD_PATH/scripts/dashboard.service restart exporter
+ExecStop=$DASHBOARD_PATH/scripts/dashboard.service stop exporter
+
+[Install]
+WantedBy=multi-user.target"
+
+WEBSERVER_SERVICE="[Unit]
+Description=Nebula Dashboard Prometheus
+After=network.target
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=10s
+PIDFile=$DASHBOARD_PATH/pids/webserver.pid
+ExecStart=$DASHBOARD_PATH/scripts/dashboard.service start webserver
+ExecReload=$DASHBOARD_PATH/scripts/dashboard.service restart webserver
+ExecStop=$DASHBOARD_PATH/scripts/dashboard.service stop webserver
+
+[Install]
+WantedBy=multi-user.target"
+
+DASHBOARD_SERVICE="[Unit]
+Description=Nebula Dashboard
+Requires=nbd-prometheus.service nbd-alert-manager.service nbd-stats-exporter.service nbd-webserver.service
+Wants=network-online.target
+After=multi-user.target nbd-prometheus.service nbd-alert-manager.service nbd-stats-exporter.service nbd-webserver.service
+AllowIsolate=yes
+
+[Install]
+WantedBy=multi-user.target
+Alias=nebula-dashboard.target"
 
 #Loop through options passed
 while getopts :v:g:m:s:k:h optname; do
@@ -81,10 +158,6 @@ done
 
 # Install Nebula Graph Dashboard
 install_dashboard() {
-  log "[install_dashboard] graph ips ${NEBULA_GRAPH_IPS}"
-  log "[install_dashboard] meta ips ${NEBULA_META_IPS}"
-  log "[install_dashboard] storage ips ${NEBULA_STORAGE_IPS}"
-
   local PACKAGE="nebula-dashboard-ent-${DASHBOARD_VERSION}.linux-amd64.tar.gz"
 
   log "[install_dashboard] installing Nebula Graph Dashboard ${DASHBOARD_VERSION}"
@@ -98,8 +171,7 @@ install_dashboard() {
     exit $EXIT_CODE
   fi
 
-  mkdir -p $DASHBOARD_PATH
-  tar -zxvf "$PACKAGE" -C $DASHBOARD_PATH
+  tar -zxvf "$PACKAGE" -C /usr/local
 
   log "[install_dashboard] installed Nebula Graph Dashboard $DASHBOARD_VERSION"
 }
@@ -110,12 +182,34 @@ configure_license() {
   cp nebula-dashboard.license $NEBULA_LICENSE_PATH
 }
 
+register_systemd()
+{
+  log "[register_systemd] configure systemd to start Dashboard service automatically when system boots"
+  local ALERT_MANAGER_UNIT="nbd-alert-manager.service"
+  local PROMETHEUS_UNIT="nbd-prometheus.service"
+  local EXPORTER_UNIT="nbd-stats-exporter.service"
+  local WEBSERVER_UNIT="nbd-webserver.service"
+  local DASHBOARD_UNIT="nebula-dashboard.target"
+
+  echo "${ALERT_MANAGER_SERVICE}" > "${SYSTEMD_PATH}"/${ALERT_MANAGER_UNIT}
+  echo "${PROMETHEUS_SERVICE}" > "${SYSTEMD_PATH}"/${PROMETHEUS_UNIT}
+  echo "${EXPORTER_SERVICE}" > "${SYSTEMD_PATH}"/${EXPORTER_UNIT}
+  echo "${WEBSERVER_SERVICE}" > "${SYSTEMD_PATH}"/${WEBSERVER_UNIT}
+  echo "${DASHBOARD_SERVICE}" > "${SYSTEMD_PATH}"/${DASHBOARD_UNIT}
+
+  UNIT_NAMES=("${ALERT_MANAGER_UNIT}" "${PROMETHEUS_UNIT}" "${EXPORTER_UNIT}" "${WEBSERVER_UNIT}" "${DASHBOARD_UNIT}")
+  for UNIT_NAME in "${UNIT_NAMES[@]}"; do
+    systemctl daemon-reload
+    systemctl enable "${UNIT_NAME}"
+  done
+}
+
 start_dashboard() {
   log "[start_dashboard] starting Dashboard"
-  $DASHBOARD_PATH/nebula-dashboard-ent/scripts/dashboard.service start all
+  systemctl start nebula-dashboard.target
   log "[start_dashboard] started Dashboard"
 
-  sleep 10
+  sleep 5
   fuser 7005/tcp
   local EXIT_CODE=$?
   if [[ $EXIT_CODE -ne 0 ]]; then
@@ -196,6 +290,8 @@ fi
 install_dashboard
 
 configure_license
+
+register_systemd
 
 start_dashboard
 
