@@ -27,9 +27,9 @@ Shell (SSH) access to Amazon Elastic Compute Cloud (Amazon EC2) instances in pub
 
 In the private subnets:
 
+* A Linux workbench host, where NebulaGraph ecosystem tools such as Explorer, Dashboard, Analytics, and Exchange are deployed together.
 * {partner-product-short-name} Graph Service supported by graphd processes. Each graphd process runs in one subnet.
-* {partner-product-short-name} Meta Service supported by metad processes. Each metad process runs in one subnet.
-* {partner-product-short-name} Storage Service supported by nebula-storaged processes. The storaged processes are distributed in different subnets automatically.
+* {partner-product-short-name} Storage Service supported by nebula-storaged processes. Each storaged process runs in one subnet.
 * An Amazon Elastic Block Store (Amazon EBS) storage volume for EC2 instances in each subnet.
 
 [.small]#* The template that deploys this Quick Start into an existing VPC skips the components marked by asterisks and prompts you for your existing VPC configuration.#
