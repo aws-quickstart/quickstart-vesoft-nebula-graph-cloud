@@ -10,16 +10,18 @@ help() {
   echo "This script installs NebulaGraph on Ubuntu"
   echo ""
   echo "Options:"
-  echo "    -v      nebula version, default: 3.1.2"
+  echo "    -v      nebula version, default: 3.1.3"
   echo "    -c      nebula component, default: all"
   echo "    -m      nebula meta_server_address, default: 127.0.0.1:9559"
+  echo "    -i      nebula component index, only used for storaged now, default: 1"
+  echo "    -l      nebula license link, default empty and will provide a trial license"
 
   echo "    -h      view default help content"
 }
 
 log() {
-  echo \[$(date +%Y/%m/%d-%H:%M:%S)\] "$1"
-  echo \[$(date +%Y/%m/%d-%H:%M:%S)\] "$1" >>/var/log/nebula-install.log
+  echo \["$(date +%Y/%m/%d-%H:%M:%S)"\] "$1"
+  echo \["$(date +%Y/%m/%d-%H:%M:%S)"\] "$1" >>/var/log/nebula-install.log
 }
 
 log "Begin execution of NebulaGraph script extension on ${HOSTNAME}"
@@ -39,113 +41,123 @@ fi
 #########################
 # Parameter handling
 #########################
+HOST_INDEX=1
 
-NEBULA_VERSION="3.1.2"
+NEBULA_VERSION="3.1.3"
 NEBULA_COMPONENT="all"
 NEBULA_LICENSE_PATH="/usr/local/nebula/share/resources/nebula.license"
 
 #LOCAL_IP=$(ip addr | awk /"$(ip route | awk '/default/ { print $5 }')"/ | awk '/inet/ { print $2 }' | cut -f 1 -d "/")
 LOCAL_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
-META_SERVER_ADDRESS="127.0.0.1:9559"
+META_SERVER_ADDRESS="${LOCAL_IP}:9559"
 
 FLAG_LOCAL_IP="--local_ip"
 FLAG_META_SERVER_ADDRESS="--meta_server_addrs"
 FLAG_DATA_PATH="--data_path"
 FLAG_LOG_PATH="--log_dir"
 
+MOUNTPOINT="/usr/local/nebula/disk1"
 DISK_DATA_PATH="/usr/local/nebula/data"
-DISK_LOG_PATH="/usr/local/nebula/log"
+DISK_LOG_PATH="/usr/local/nebula/logs"
 
 SYSTEMD_PATH="/usr/lib/systemd/system"
 
-#Define systemctl units
-
-GRAPHD_SERVICE="[Unit]
-                Description=Nebula Graph Graphd Service
-                After=network.target
-
-                [Service]
-                Type=forking
-                Restart=always
-                RestartSec=10s
-                PIDFile=/usr/local/nebula/pids/nebula-graphd.pid
-                ExecStart=/usr/local/nebula/scripts/nebula.service start graphd
-                ExecReload=/usr/local/nebula/scripts/nebula.service restart graphd
-                ExecStop=/usr/local/nebula/scripts/nebula.service stop graphd
-                PrivateTmp=true
-
-                [Install]
-                WantedBy=multi-user.target"
-
-METAD_SERVICE="[Unit]
-               Description=Nebula Graph Metad Service
-               After=network.target
-
-               [Service]
-               Type=forking
-               Restart=always
-               RestartSec=10s
-               PIDFile=/usr/local/nebula/pids/nebula-metad.pid
-               ExecStart=/usr/local/nebula/scripts/nebula.service start metad
-               ExecReload=/usr/local/nebula/scripts/nebula.service restart metad
-               ExecStop=/usr/local/nebula/scripts/nebula.service stop metad
-               PrivateTmp=true
-
-               [Install]
-               WantedBy=multi-user.target"
-
-STORAGED_SERVICE="[Unit]
-                  Description=Nebula Graph Storaged Service
-                  After=network.target
-
-                  [Service]
-                  Type=forking
-                  Restart=always
-                  RestartSec=10s
-                  PIDFile=/usr/local/nebula/pids/nebula-storaged.pid
-                  ExecStart=/usr/local/nebula/scripts/nebula.service start storaged
-                  ExecReload=/usr/local/nebula/scripts/nebula.service restart storaged
-                  ExecStop=/usr/local/nebula/scripts/nebula.service stop storaged
-                  PrivateTmp=true
-
-                  [Install]
-                  WantedBy=multi-user.target"
-
 #Loop through options passed
-while getopts :v:c:m:h optname; do
+while getopts :v:c:m:i:l:h optname; do
   log "Option ${optname} set"
   case $optname in
-  v) #set nebula version
-    NEBULA_VERSION="${OPTARG}"
-    ;;
-  c) #set nebula component
-    NEBULA_COMPONENT="${OPTARG}"
-    ;;
-  m) #set meta_server_address
-    META_SERVER_ADDRESS="${OPTARG}"
-    ;;
-  h) #show help
-    help
-    exit 2
-    ;;
-  \?) #unrecognized option - show help
-    echo -e \\n"Option -${BOLD}$OPTARG${NORM} not allowed."
-    help
-    exit 2
-    ;;
+    v) #set nebula version
+      NEBULA_VERSION="${OPTARG}"
+      ;;
+    c) #set nebula component
+      NEBULA_COMPONENT="${OPTARG}"
+      ;;
+    m) #set meta_server_address
+      META_SERVER_ADDRESS="${OPTARG}"
+      ;;
+    i) #set component index
+      HOST_INDEX="${OPTARG}"
+      ;;
+    l) #set license link
+      LICENSE_LINK="${OPTARG}"
+      ;;
+    h) #show help
+      help
+      exit 2
+      ;;
+    \?) #unrecognized option - show help
+      echo -e \\n"Option -${OPTARG} not allowed."
+      help
+      exit 2
+      ;;
   esac
 done
+
+#########################
+#Define systemctl units
+#########################
+
+GRAPHD_SERVICE="[Unit]
+Description=NebulaGraph Graphd Service
+After=network.target
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=30s
+PIDFile=/usr/local/nebula/pids/nebula-graphd.pid
+ExecStart=/usr/local/nebula/scripts/nebula.service start graphd
+ExecReload=/usr/local/nebula/scripts/nebula.service restart graphd
+ExecStop=/usr/local/nebula/scripts/nebula.service stop graphd
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target"
+
+METAD_SERVICE="[Unit]
+Description=NebulaGraph Metad Service
+After=network.target
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=60s
+PIDFile=/usr/local/nebula/pids/nebula-metad.pid
+ExecStart=/usr/local/nebula/scripts/nebula.service start metad
+ExecReload=/usr/local/nebula/scripts/nebula.service restart metad
+ExecStop=/usr/local/nebula/scripts/nebula.service stop metad
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target"
+
+STORAGED_SERVICE="[Unit]
+Description=NebulaGraph Storaged Service
+After=network.target
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=90s
+PIDFile=/usr/local/nebula/pids/nebula-storaged.pid
+ExecStart=/usr/local/nebula/scripts/nebula.service start storaged
+ExecReload=/usr/local/nebula/scripts/nebula.service restart storaged
+ExecStop=/usr/local/nebula/scripts/nebula.service stop storaged
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target"
 
 #########################
 # Installation steps as functions
 #########################
 
-# Format data disks (Find data disks then partition, format, and mount them as seperate drives)
+# Format data disks (Find data disks then partition, format, and mount them as separate drives)
 format_data_disks() {
   log "[format_data_disks] starting partition and format attached disks"
   bash vm-disk-utils.sh
   local EXIT_CODE=$?
-  if [[ $EXIT_CODE -ne 0 ]]; then
+  if [ $EXIT_CODE -ne 0 ]; then
     log "[format_data_disks] returned non-zero exit code: $EXIT_CODE"
     exit $EXIT_CODE
   fi
@@ -154,13 +166,12 @@ format_data_disks() {
 
 # Configure NebulaGraph Data Disk Folder and Permissions
 setup_data_disk() {
-  if [ -d "/datadisks" ]; then
-    local RAIDDISK="/datadisks/disk1"
-    log "[setup_data_disk] configuring disk $RAIDDISK/nebula/data"
-    mkdir -p "$RAIDDISK/nebula/data"
-    chmod 755 "$RAIDDISK/nebula"
-    DISK_DATA_PATH="$RAIDDISK/nebula/data"
-    DISK_LOG_PATH="$RAIDDISK/nebula/log"
+  if [ -d "${MOUNTPOINT}" ]; then
+    log "[setup_data_disk] configuring dir ${MOUNTPOINT}"
+    DISK_DATA_PATH="${MOUNTPOINT}/data"
+    DISK_LOG_PATH="${MOUNTPOINT}/logs"
+    mkdir -p "${DISK_DATA_PATH}"
+    mkdir -p "${DISK_LOG_PATH}"
   else
     #If we do not find folders/disks in our data disk mount directory then use the defaults
     log "[setup_data_disk] configured data directory does not exist for ${HOSTNAME}. using defaults"
@@ -174,12 +185,14 @@ install_nebula() {
   local PACKAGE="nebula-graph-ent-${NEBULA_VERSION}.${OS_VERSION}.${OS_SUFFIX}.deb"
 
   chmod +x nebula-download
-  ./nebula-download nebula
-
-  log "[install_nebula] installing NebulaGraph ${NEBULA_VERSION}"
+  if [ -z "${LICENSE_LINK}" ]; then
+    ./nebula-download nebula --version="${NEBULA_VERSION}" --trial
+  else
+    ./nebula-download nebula --version="${NEBULA_VERSION}"
+  fi
 
   local EXIT_CODE=$?
-  if [[ $EXIT_CODE -ne 0 ]]; then
+  if [ $EXIT_CODE -ne 0 ]; then
     log "[install_nebula] error downloading NebulaGraph $NEBULA_VERSION"
     exit $EXIT_CODE
   fi
@@ -192,20 +205,30 @@ install_nebula() {
 # Configure NebulaGraph
 configure_nebula() {
   case $NEBULA_COMPONENT in
-  "graphd")
-    configure_graphd
-    ;;
-  "metad")
-    configure_metad
-    ;;
-  "storaged")
-    configure_storaged
-    ;;
-  "all")
-    configure_graphd
-    configure_metad
-    configure_storaged
-    ;;
+    "graphd")
+      configure_graphd
+      ;;
+    "metad")
+      configure_license
+      configure_metad
+      ;;
+    "storaged")
+      if [ "$HOST_INDEX" -lt 4  ] && [ "$NEBULA_COMPONENT" = "storaged" ]; then
+        mkdir -p "${DISK_DATA_PATH}/meta"
+        configure_license
+        configure_metad
+      fi
+      mkdir -p "${DISK_DATA_PATH}/storage"
+      configure_storaged
+      ;;
+    "all")
+      mkdir -p "${DISK_DATA_PATH}/meta"
+      mkdir -p "${DISK_DATA_PATH}/storage"
+      configure_license
+      configure_graphd
+      configure_metad
+      configure_storaged
+      ;;
   esac
 }
 
@@ -213,34 +236,35 @@ configure_graphd() {
   log "[configure_graphd] configure nebula-graphd.conf file"
   local GRAPHD_CONF="/usr/local/nebula/etc/nebula-graphd.conf"
 
-  if [ -d "/datadisks" ]; then
-    sed -i "s/${FLAG_LOG_PATH}.*/${FLAG_LOG_PATH}=$(echo "${DISK_LOG_PATH}" | sed -e 's/\//\\\//g')/" $GRAPHD_CONF
-  fi
+  sed -i "s/${FLAG_LOG_PATH}.*/${FLAG_LOG_PATH}=$(echo "${DISK_LOG_PATH}" | sed -e 's/\//\\\//g')/" $GRAPHD_CONF
   configure_common_flag $GRAPHD_CONF
+  sed -i "s/--enable_authorize.*/--enable_authorize=true/" "$GRAPHD_CONF"
+  sed -i "s/--storage_client_timeout_ms.*/--storage_client_timeout_ms=1200000/" "$GRAPHD_CONF"
 }
 
 configure_metad() {
   log "[configure_metad] configure nebula-metad.conf file"
   local METAD_CONF="/usr/local/nebula/etc/nebula-metad.conf"
 
-  if [ -d "/datadisks" ]; then
-    sed -i "s/${FLAG_DATA_PATH}.*/${FLAG_DATA_PATH}=$(echo "${DISK_DATA_PATH}" | sed -e 's/\//\\\//g')/" $METAD_CONF
-    sed -i "s/${FLAG_LOG_PATH}.*/${FLAG_LOG_PATH}=$(echo "${DISK_LOG_PATH}" | sed -e 's/\//\\\//g')/" $METAD_CONF
-  fi
-
+  sed -i "s/${FLAG_DATA_PATH}.*/${FLAG_DATA_PATH}=$(echo "${DISK_DATA_PATH}/meta" | sed -e 's/\//\\\//g')/" $METAD_CONF
+  sed -i "s/${FLAG_LOG_PATH}.*/${FLAG_LOG_PATH}=$(echo "${DISK_LOG_PATH}" | sed -e 's/\//\\\//g')/" $METAD_CONF
   configure_common_flag $METAD_CONF
+  sed -i "s/--agent_heartbeat_interval_secs.*/--agent_heartbeat_interval_secs=600/" $METAD_CONF
 }
 
 configure_storaged() {
   log "[configure_storaged] configure nebula-storaged.conf file"
   local STORAGED_CONF="/usr/local/nebula/etc/nebula-storaged.conf"
 
-  if [ -d "/datadisks" ]; then
-    sed -i "s/${FLAG_DATA_PATH}.*/${FLAG_DATA_PATH}=$(echo "${DISK_DATA_PATH}" | sed -e 's/\//\\\//g')/" $STORAGED_CONF
-    sed -i "s/${FLAG_LOG_PATH}.*/${FLAG_LOG_PATH}=$(echo "${DISK_LOG_PATH}" | sed -e 's/\//\\\//g')/" $STORAGED_CONF
-  fi
-
+  sed -i "s/${FLAG_DATA_PATH}.*/${FLAG_DATA_PATH}=$(echo "${DISK_DATA_PATH}/storage" | sed -e 's/\//\\\//g')/" $STORAGED_CONF
+  sed -i "s/${FLAG_LOG_PATH}.*/${FLAG_LOG_PATH}=$(echo "${DISK_LOG_PATH}" | sed -e 's/\//\\\//g')/" $STORAGED_CONF
   configure_common_flag $STORAGED_CONF
+
+  memTotal=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+  memAvail=$((memTotal * 1024 / 6))
+  sed -i "s/--rebuild_index_batch_size.*/--rebuild_index_batch_size=40960/" $STORAGED_CONF
+  sed -i "s/--rocksdb_block_cache.*/--rocksdb_block_cache=$memAvail/" $STORAGED_CONF
+  sed -i "s/--wal_ttl.*/--wal_ttl=600/" $STORAGED_CONF
 }
 
 add_storaged_hosts() {
@@ -250,7 +274,7 @@ add_storaged_hosts() {
   ./hosts-manager add --endpoints "${META_SERVER_ADDRESS}" --hosts "${LOCAL_IP}"
 
   local EXIT_CODE=$?
-  if [[ $EXIT_CODE -ne 0 ]]; then
+  if [ $EXIT_CODE -ne 0 ]; then
     log "[add_storaged_hosts] failed add storage hosts"
     exit $EXIT_CODE
   fi
@@ -272,20 +296,23 @@ configure_license() {
 # Register NebulaGraph Systemd
 register_systemd() {
   case $NEBULA_COMPONENT in
-  "graphd")
-    register_graph_systemd
-    ;;
-  "metad")
-    register_meta_systemd
-    ;;
-  "storaged")
-    register_storage_systemd
-    ;;
-  "all")
-    register_graph_systemd
-    register_meta_systemd
-    register_storage_systemd
-    ;;
+    "graphd")
+      register_graph_systemd
+      ;;
+    "metad")
+      register_meta_systemd
+      ;;
+    "storaged")
+      if [ "$HOST_INDEX" -lt 4  ] && [ "$NEBULA_COMPONENT" = "storaged" ]; then
+        register_meta_systemd
+      fi
+      register_storage_systemd
+      ;;
+    "all")
+      register_graph_systemd
+      register_meta_systemd
+      register_storage_systemd
+      ;;
   esac
 }
 
@@ -293,7 +320,7 @@ register_graph_systemd() {
   log "[register_graph_systemd] register nebula-graphd service"
   local UNIT_NAME="nebula-graphd.service"
 
-  echo "${GRAPHD_SERVICE}" >${SYSTEMD_PATH}/${UNIT_NAME}
+  echo "${GRAPHD_SERVICE}" > ${SYSTEMD_PATH}/${UNIT_NAME}
   systemctl daemon-reload
   systemctl enable ${UNIT_NAME}
 }
@@ -302,7 +329,7 @@ register_storage_systemd() {
   log "[register_storage_systemd] register nebula-storaged service"
   local UNIT_NAME="nebula-storaged.service"
 
-  echo "${STORAGED_SERVICE}" >${SYSTEMD_PATH}/${UNIT_NAME}
+  echo "${STORAGED_SERVICE}" > ${SYSTEMD_PATH}/${UNIT_NAME}
   systemctl daemon-reload
   systemctl enable ${UNIT_NAME}
 }
@@ -311,7 +338,7 @@ register_meta_systemd() {
   log "[register_meta_systemd] register nebula-metad service"
   local UNIT_NAME="nebula-metad.service"
 
-  echo "${METAD_SERVICE}" >${SYSTEMD_PATH}/${UNIT_NAME}
+  echo "${METAD_SERVICE}" > ${SYSTEMD_PATH}/${UNIT_NAME}
   systemctl daemon-reload
   systemctl enable ${UNIT_NAME}
 }
@@ -319,40 +346,68 @@ register_meta_systemd() {
 # Start NebulaGraph Systemd
 start_nebula() {
   case $NEBULA_COMPONENT in
-  "graphd")
-    start_graph_systemd
-    ;;
-  "metad")
-    start_meta_systemd
-    ;;
-  "storaged")
-    start_storage_systemd
-    add_storaged_hosts
-    ;;
-  "all")
-    start_graph_systemd
-    start_meta_systemd
-    start_storage_systemd
-    ;;
+    "graphd")
+      start_graph_systemd
+      ;;
+    "metad")
+      start_meta_systemd
+      ;;
+    "storaged")
+      if [ "$HOST_INDEX" -lt 4  ] && [ "$NEBULA_COMPONENT" = "storaged" ]; then
+        start_meta_systemd
+      fi
+      add_storaged_hosts
+      start_storage_systemd
+      ;;
+    "all")
+      start_meta_systemd
+      start_graph_systemd
+      add_storaged_hosts
+      start_storage_systemd
+      ;;
   esac
 }
 
 start_graph_systemd() {
   log "[start_graph_systemd] starting Nebula Graphd"
   systemctl start nebula-graphd.service
+  health_check 19669 Graphd
   log "[start_graph_systemd] started Nebula Graphd"
 }
 
 start_meta_systemd() {
   log "[start_meta_systemd] starting Nebula Metad"
   systemctl start nebula-metad.service
+  health_check 19559 Metad
   log "[start_meta_systemd] started Nebula Metad"
 }
 
 start_storage_systemd() {
   log "[start_storage_systemd] starting Nebula Storaged"
   systemctl start nebula-storaged.service
+  health_check 19779 Storaged
   log "[start_storage_systemd] started Nebula Storaged"
+}
+
+health_check() {
+  declare -i retry=0
+  local STATUS_URL="http://${LOCAL_IP}:$1/status"
+  sleep 5
+  for i in {1..10}; do
+    log "[health_check] try $i times"
+    curl -sf "${STATUS_URL}"
+    local EXIT_CODE=$?
+    if [ $EXIT_CODE -ne 0 ]; then
+      sleep 5
+      retry+=1
+    else
+      break
+    fi
+  done
+  if [ $retry -eq 10 ]; then
+    log "[health_check] start nebula $2 failed"
+    exit 1
+  fi
 }
 
 #########################
@@ -361,6 +416,8 @@ start_storage_systemd() {
 format_data_disks
 
 install_nebula
+
+format_data_disks
 
 configure_license
 
@@ -372,8 +429,8 @@ register_systemd
 
 start_nebula
 
-ELAPSED_TIME=$(($SECONDS - $START_TIME))
-PRETTY=$(printf '%dh:%dm:%ds\n' $(($ELAPSED_TIME / 3600)) $(($ELAPSED_TIME % 3600 / 60)) $(($ELAPSED_TIME % 60)))
+ELAPSED_TIME=$((SECONDS - START_TIME))
+PRETTY=$(printf '%dh:%dm:%ds\n' $((ELAPSED_TIME / 3600)) $((ELAPSED_TIME % 3600 / 60)) $((ELAPSED_TIME % 60)))
 
 log "End execution of NebulaGraph script extension on ${HOSTNAME} in ${PRETTY}"
 exit 0

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Deploy NebulaGraph on Amazon Web Services in a new VPC. (qs-1t9ums4k2)
+Description: Deploy NebulaGraph on Amazon Web Services in a existing VPC. (qs-1t9ums4k2)
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
@@ -8,10 +8,7 @@ Metadata:
           default: Network configuration
         Parameters:
           - VPCID
-          - VPCCIDR
-          - PrivateSubnet1AID
-          - PrivateSubnet2AID
-          - PrivateSubnet3AID
+          - PrivateSubnetsID
           - PublicSubnet1ID
           - RemoteAccessCIDR
           - AccessCIDR
@@ -27,29 +24,13 @@ Metadata:
       - Label:
           default: NebulaGraph configuration
         Parameters:
-          - NebulaGraphVersion
+          - LicenseLink
           - GraphNodeCount
           - GraphInstanceType
-          - GraphVolumeType
-          - GraphVolumeSize
-          - MetaNodeCount
-          - MetaInstanceType
-          - MetaVolumeType
-          - MetaVolumeSize
           - StorageNodeCount
           - StorageInstanceType
-          - StorageVolumeType
           - StorageVolumeSize
-      - Label:
-          default: Explorer configuration
-        Parameters:
-          - EnableExplorer
-          - ExplorerInstanceType
-      - Label:
-          default: Dashboard configuration
-        Parameters:
-          - EnableDashboard
-          - DashboardInstanceType
+          - WorkbenchInstanceType
       - Label:
           default: Quick Start configuration
         Parameters:
@@ -59,14 +40,8 @@ Metadata:
     ParameterLabels:
       VPCID:
         default: VPC ID
-      VPCCIDR:
-        default: VPC CIDR
-      PrivateSubnet1AID:
-        default: Private subnet 1 ID
-      PrivateSubnet2AID:
-        default: Private subnet 2 ID
-      PrivateSubnet3AID:
-        default: Private subnet 3 ID
+      PrivateSubnetsID:
+        default: Private subnets ID
       PublicSubnet1ID:
         default: Public subnet 1 ID
       RemoteAccessCIDR:
@@ -74,45 +49,25 @@ Metadata:
       AccessCIDR:
         default: Permitted IP range
       KeyPairName:
-        default: Key pair name
+        default: Key-pair name
       BastionAMIOS:
         default: Bastion AMI OS
       BastionInstanceType:
         default: Bastion instance type
-      NebulaGraphVersion:
-        default: NebulaGraph version
+      LicenseLink:
+        default: NebulaGraph License Link
       GraphNodeCount:
         default: Number of Graph nodes
       GraphInstanceType:
-        default: Graph Node instance type
-      GraphVolumeType:
-        default: Volume type of Graph nodes
-      GraphVolumeSize:
-        default: Volume size of Graph nodes
-      MetaNodeCount:
-        default: Number of Meta nodes
-      MetaInstanceType:
-        default: Meta Node instance type
-      MetaVolumeType:
-        default: Volume type of Meta nodes
-      MetaVolumeSize:
-        default: Volume size of Meta nodes
+        default: Graph Node Instance Type.
       StorageNodeCount:
         default: Number of Storage nodes
       StorageInstanceType:
-        default: Storage Node instance type
-      StorageVolumeType:
-        default: Volume type of Storage nodes
+        default: Storage Node Instance Type.
       StorageVolumeSize:
         default: Volume size of Storage nodes
-      EnableExplorer:
-        default: Enable Explorer
-      ExplorerInstanceType:
-        default: Explorer instance type
-      EnableDashboard:
-        default: Enable Dashboard
-      DashboardInstanceType:
-        default: Dashboard instance type
+      WorkbenchInstanceType:
+        default: Tools Instance Type.
       QSS3BucketName:
         default: Quick Start S3 bucket name
       QSS3BucketRegion:
@@ -122,25 +77,13 @@ Metadata:
 Parameters:
   VPCID:
     Description: Existing VPC ID.
-    Type: String
-  VPCCIDR:
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
-    Default: 10.0.0.0/16
-    Description: CIDR block for the VPC.
-    Type: String
-  PrivateSubnet1AID:
-    Description: Private subnet 1 ID.
-    Type: String
-  PrivateSubnet2AID:
-    Description: (Ignore if the number of Meta nodes is 1) Private subnet 2 ID.
-    Type: String
-  PrivateSubnet3AID:
-    Description: (Ignore if the number of Meta nodes is 1) Private subnet 3 ID.
-    Type: String
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnetsID:
+    Description: Private subnets ID(Select 1 if the number of Storage nodes is 1, otherwise select 3).
+    Type: List<AWS::EC2::Subnet::Id>
   PublicSubnet1ID:
-    Description:  Public subnet 1 ID.
-    Type: String
+    Description: Public subnet 1 ID.
+    Type: AWS::EC2::Subnet::Id
   RemoteAccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x.
@@ -154,6 +97,8 @@ Parameters:
     Default: 10.0.0.0/16
     Type: String
   KeyPairName:
+    AllowedPattern: ^.+$
+    ConstraintDescription: Cannot be empty.
     Description: Key pairs allow you to connect to your instance after it launches.
     Type: AWS::EC2::KeyPair::KeyName
   BastionAMIOS:
@@ -163,7 +108,7 @@ Parameters:
       - Ubuntu-Server-20.04-LTS-HVM
       - SUSE-SLES-15-HVM
     Default: Amazon-Linux2-HVM
-    Description: Linux distribution for the AMI used for bastion instances.
+    Description: Linux distribution for the AMI to be used for bastion instances.
     Type: String
   BastionInstanceType:
     AllowedValues:
@@ -188,9 +133,8 @@ Parameters:
     Default: t2.micro
     Description: Amazon EC2 instance type for bastion instances.
     Type: String
-  NebulaGraphVersion:
-    Default: 3.1.2
-    Description: NebulaGraph version.
+  LicenseLink:
+    Description: You can skip this for 3-day free trial, or you can contact us for an enterprise license via https://www.nebula-graph.io/contact.
     Type: String
   GraphNodeCount:
     AllowedValues:
@@ -198,7 +142,7 @@ Parameters:
       - 2
       - 3
     Default: 1
-    Description: Number of Graph nodes. A minimum 2 Graph nodes is recommended to ensure high availability.
+    Description: Number of Graph nodes. It is strongly recommended to have a minimum 2 Graph nodes in order to ensure high availability.
     Type: Number
   GraphInstanceType:
     Description: Amazon EC2 instance type for the Graph nodes.
@@ -270,75 +214,6 @@ Parameters:
       - r6i.24xlarge
       - r6i.32xlarge
       - r6i.metal
-  GraphVolumeType:
-    Type: String
-    Description: Amazon EBS data-volume type (e.g., gp2, gp3, io1 and io2) to be attached to Graph node.
-    Default: gp2
-    AllowedValues:
-      - gp2
-      - gp3
-      - io1
-      - io2
-  GraphVolumeSize:
-    Description: 'Amazon EBS data-volume to be attached to Graph node in GBs, range of values [10-40].'
-    Type: Number
-    Default: 10
-    MinValue: 10
-    MaxValue: 40
-  MetaNodeCount:
-    AllowedValues:
-      - 1
-      - 3
-    Default: 1
-    Description: Number of Meta nodes. Three Meta nodes are recommended to ensure high availability.
-    Type: Number
-  MetaInstanceType:
-    Description: Amazon EC2 instance type for the Meta nodes.
-    Type: String
-    Default: c5.large
-    AllowedValues:
-      - c5.large
-      - c5.xlarge
-      - c5.2xlarge
-      - c5.4xlarge
-      - c5.9xlarge
-      - c5.12xlarge
-      - c5a.large
-      - c5a.xlarge
-      - c5a.2xlarge
-      - c5a.4xlarge
-      - c5a.8xlarge
-      - c5a.12xlarge
-      - c5a.16xlarge
-      - c6a.large
-      - c6a.xlarge
-      - c6a.2xlarge
-      - c6a.4xlarge
-      - c6a.8xlarge
-      - c6a.12xlarge
-      - c6a.16xlarge
-      - c6i.large
-      - c6i.xlarge
-      - c6i.2xlarge
-      - c6i.4xlarge
-      - c6i.8xlarge
-      - c6i.12xlarge
-      - c6i.16xlarge
-  MetaVolumeType:
-    Type: String
-    Description: Amazon EBS data-volume type (e.g., gp2, gp3, io1 and io2) to be attached to Meta node.
-    Default: gp2
-    AllowedValues:
-      - gp2
-      - gp3
-      - io1
-      - io2
-  MetaVolumeSize:
-    Description: 'Amazon EBS data-volume to be attached to Meta node in GBs, range of values [20-40].'
-    Type: Number
-    Default: 20
-    MinValue: 20
-    MaxValue: 40
   StorageNodeCount:
     AllowedValues:
       - 1
@@ -346,7 +221,7 @@ Parameters:
       - 5
       - 7
     Default: 1
-    Description: Number of Storage nodes.
+    Description: Number of storage node. It is strongly recommended to have a minimum 3 storage nodes in order to ensure high availability.
     Type: Number
   StorageInstanceType:
     Description: Amazon EC2 instance type for the Storage nodes.
@@ -380,23 +255,14 @@ Parameters:
       - c6i.8xlarge
       - c6i.12xlarge
       - c6i.16xlarge
-  StorageVolumeType:
-    Type: String
-    Description: Amazon EBS data-volume type (e.g., gp2, gp3, io1 and io2) to be attached to Storage node.
-    Default: gp2
-    AllowedValues:
-      - gp2
-      - gp3
-      - io1
-      - io2
   StorageVolumeSize:
-    Description: 'Amazon EBS data-volume to be attached to Storage node in GBs, range of values [32-16384].'
+    Description: 'Amazon EBS data-volume to be attached to Storage node in GBs, range of values [32-16384].The cluster size you need is: the_sum_of_edge_number_and_vertex_number * average_bytes_of_properties * 7.5 * 120%.'
     Type: Number
     Default: 32
     MinValue: 32
     MaxValue: 16384
-  ExplorerInstanceType:
-    Description: Amazon EC2 instance type for NebulaGraph Explorer node.
+  WorkbenchInstanceType:
+    Description: Amazon EC2 instance type for NebulaGraph Workbench node.(NebulaGraph Explorer, NebulaGraph Dashboard, NebulaGraph Analytics and NebulaGraph Exchange are included in the workbench.)
     Type: String
     Default: t3.medium
     AllowedValues:
@@ -416,41 +282,6 @@ Parameters:
       - c5.xlarge
       - c5.2xlarge
       - c5.4xlarge
-  EnableExplorer:
-    Description: If false, the Explorer node will not be created. Default value is true.
-    Type: String
-    AllowedValues:
-      - 'true'
-      - 'false'
-    Default: 'true'
-  DashboardInstanceType:
-    Description: Amazon EC2 instance type for NebulaGraph Dashboard node.
-    Type: String
-    Default: t3.medium
-    AllowedValues:
-      - t3.medium
-      - t3.large
-      - t3.xlarge
-      - t3.2xlarge
-      - m5.large
-      - m5.xlarge
-      - m5.2xlarge
-      - m5.4xlarge
-      - m5a.large
-      - m5a.xlarge
-      - m5a.2xlarge
-      - m5a.4xlarge
-      - c5.large
-      - c5.xlarge
-      - c5.2xlarge
-      - c5.4xlarge
-  EnableDashboard:
-    Description: If false, the Dashboard node will not be created. Default value is true.
-    Type: String
-    AllowedValues:
-      - 'true'
-      - 'false'
-    Default: 'true'
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
     ConstraintDescription: The S3 bucket name can include numbers, lowercase letters,
@@ -479,60 +310,13 @@ Parameters:
       updates code references to point to a new location. When using your own bucket,
       specify the Region.
     Type: String
-Mappings:
-  AWSRegionArch2AMI:
-    ap-northeast-1:
-      HVM64: ami-0f8048fa3e3b9e8ff
-    ap-northeast-2:
-      HVM64: ami-0ea5eb4b05645aa8a
-    ap-northeast-3:
-      HVM64: ami-0ba140397329ef9ae
-    ap-east-1:
-      HVM64: ami-0d11fee2d69126ec1
-    ap-south-1:
-      HVM64: ami-0ecd7c3947c3e5de8
-    ap-southeast-1:
-      HVM64: ami-04ff9e9b51c1f62ca
-    ap-southeast-2:
-      HVM64: ami-0300dc03c13eb7660
-    ap-southeast-3:
-      HVM64: ami-00c5331644ad576ad
-    ca-central-1:
-      HVM64: ami-0665ce57d172e712e
-    eu-central-1:
-      HVM64: ami-0c9354388bb36c088
-    eu-west-1:
-      HVM64: ami-0d2a4a5d69e46ea0b
-    eu-west-2:
-      HVM64: ami-0bd2099338bc55e6d
-    eu-west-3:
-      HVM64: ami-0f7559f51d3a22167
-    eu-south-1:
-      HVM64: ami-0fbb3ea579c01e50b
-    eu-north-1:
-      HVM64: ami-012ae45a4a2d92750
-    sa-east-1:
-      HVM64: ami-0edc92075724775f7
-    us-east-1:
-      HVM64: ami-08d4ac5b634553e16
-    us-east-2:
-      HVM64: ami-0960ab670c8bb45f3
-    us-west-1:
-      HVM64: ami-01154c8b2e9a14885
-    us-west-2:
-      HVM64: ami-0ddf424f81ddb0720
-    me-south-1:
-      HVM64: ami-0b35873acba1a6ec3
-    af-south-1:
-      HVM64: ami-0ecd7c3947c3e5de8
 Conditions:
-  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
-  EnableExplorerCondition: !Equals [!Ref EnableExplorer, 'true']
-  EnableDashboardCondition: !Equals [!Ref EnableDashboard, 'true']
-  EnableNLBCondition: !Or
-    - !Equals [!Ref EnableExplorer, 'true']
-    - !Equals [!Ref EnableDashboard, 'true']
-  3MetaNodesCondition: !Equals [!Ref MetaNodeCount, '3']
+  UsingDefaultBucket: !Equals [ !Ref QSS3BucketName, 'aws-quickstart' ]
+  3MetaNodesCondition: !Not
+    - !Equals [ !Ref StorageNodeCount, '1' ]
+  MoreThan2GraphNodesCondition: !Or
+    - !Equals [!Ref GraphNodeCount, '2']
+    - !Equals [!Ref GraphNodeCount, '3']
 Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
@@ -577,10 +361,25 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters:
-        AccessCIDR: !Ref AccessCIDR
         VPCID: !Ref VPCID
-        VPCCIDR: !Ref VPCCIDR
+  SecurityGroupRulesStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Sub:
+          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/securitygroups-rules.template.yaml
+          - S3Region: !If
+              - UsingDefaultBucket
+              - !Ref 'AWS::Region'
+              - !Ref QSS3BucketRegion
+            S3Bucket: !If
+              - UsingDefaultBucket
+              - !Sub '${QSS3BucketName}-${AWS::Region}'
+              - !Ref QSS3BucketName
+      Parameters:
+        SecurityGroupID: !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
         BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
+        AccessCIDR: !Ref AccessCIDR
   IAMRoleStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -610,17 +409,20 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters:
-        PrivateSubnet1ID: !Ref PrivateSubnet1AID
+        PrivateSubnet1ID: !Select [ 0, !Ref PrivateSubnetsID ]
         PrivateSubnet2ID: !If
           - 3MetaNodesCondition
-          - !Ref PrivateSubnet2AID
-          - !Ref PrivateSubnet1AID
+          - !Select [ 1, !Ref PrivateSubnetsID ]
+          - !Select [ 0, !Ref PrivateSubnetsID ]
         PrivateSubnet3ID: !If
           - 3MetaNodesCondition
-          - !Ref PrivateSubnet3AID
-          - !Ref PrivateSubnet1AID
+          - !Select [ 2, !Ref PrivateSubnetsID ]
+          - !Select [ 0, !Ref PrivateSubnetsID ]
         SecurityGroupID: !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
-        MetaNodeCount: !Ref MetaNodeCount
+        MetaNodeCount: !If
+          - 3MetaNodesCondition
+          - '3'
+          - '1'
   GraphNodesStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -636,61 +438,26 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters:
-        PrivateSubnet1ID: !Ref PrivateSubnet1AID
+        DeploymentID: !Select [ 2, !Split [ "/", !Ref AWS::StackId ] ]
+        PrivateSubnet1ID: !Select [ 0, !Ref PrivateSubnetsID ]
         PrivateSubnet2ID: !If
           - 3MetaNodesCondition
-          - !Ref PrivateSubnet2AID
-          - !Ref PrivateSubnet1AID
+          - !Select [ 1, !Ref PrivateSubnetsID ]
+          - !Select [ 0, !Ref PrivateSubnetsID ]
         PrivateSubnet3ID: !If
           - 3MetaNodesCondition
-          - !Ref PrivateSubnet3AID
-          - !Ref PrivateSubnet1AID
+          - !Select [ 2, !Ref PrivateSubnetsID ]
+          - !Select [ 0, !Ref PrivateSubnetsID ]
         SecurityGroupID: !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
         IAMRoleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
         IAMProfileID: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
         KeyPairName: !Ref KeyPairName
         GraphInstanceType: !Ref GraphInstanceType
         GraphNodeCount: !Ref GraphNodeCount
-        VolumeSize: !Ref GraphVolumeSize
-        VolumeType: !Ref GraphVolumeType
+        VolumeSize: '10'
+        VolumeType: 'gp2'
         MetaEndpoints: !GetAtt MetaInterfacesStack.Outputs.MetaEndpoints
-        NebulaGraphVersion: !Ref NebulaGraphVersion
-        QSS3BucketName: !If
-          - UsingDefaultBucket
-          - !Sub '${QSS3BucketName}-${AWS::Region}'
-          - !Ref QSS3BucketName
-        QSS3KeyPrefix: !Ref QSS3KeyPrefix
-        QSS3BucketRegion: !If
-          - UsingDefaultBucket
-          - !Ref 'AWS::Region'
-          - !Ref QSS3BucketRegion
-  MetaNodesStack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL:
-        Fn::Sub:
-          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/meta-cluster.template.yaml
-          - S3Region: !If
-              - UsingDefaultBucket
-              - !Ref 'AWS::Region'
-              - !Ref QSS3BucketRegion
-            S3Bucket: !If
-              - UsingDefaultBucket
-              - !Sub '${QSS3BucketName}-${AWS::Region}'
-              - !Ref QSS3BucketName
-      Parameters:
-        IAMRoleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
-        IAMProfileID: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
-        KeyPairName: !Ref KeyPairName
-        MetaInstanceType: !Ref MetaInstanceType
-        MetaNodeCount: !Ref MetaNodeCount
-        NetworkInterface1ID: !GetAtt MetaInterfacesStack.Outputs.NetworkInterface1ID
-        NetworkInterface2ID: !GetAtt MetaInterfacesStack.Outputs.NetworkInterface2ID
-        NetworkInterface3ID: !GetAtt MetaInterfacesStack.Outputs.NetworkInterface3ID
-        VolumeSize: !Ref MetaVolumeSize
-        VolumeType: !Ref MetaVolumeType
-        MetaEndpoints: !GetAtt MetaInterfacesStack.Outputs.MetaEndpoints
-        NebulaGraphVersion: !Ref NebulaGraphVersion
+        NebulaGraphVersion: '3.1.3'
         QSS3BucketName: !If
           - UsingDefaultBucket
           - !Sub '${QSS3BucketName}-${AWS::Region}'
@@ -715,25 +482,30 @@ Resources:
               - !Sub '${QSS3BucketName}-${AWS::Region}'
               - !Ref QSS3BucketName
       Parameters:
-        PrivateSubnet1ID: !Ref PrivateSubnet1AID
+        DeploymentID: !Select [ 2, !Split [ "/", !Ref AWS::StackId ] ]
+        PrivateSubnet1ID: !Select [ 0, !Ref PrivateSubnetsID ]
         PrivateSubnet2ID: !If
           - 3MetaNodesCondition
-          - !Ref PrivateSubnet2AID
-          - !Ref PrivateSubnet1AID
+          - !Select [ 1, !Ref PrivateSubnetsID ]
+          - !Select [ 0, !Ref PrivateSubnetsID ]
         PrivateSubnet3ID: !If
           - 3MetaNodesCondition
-          - !Ref PrivateSubnet3AID
-          - !Ref PrivateSubnet1AID
+          - !Select [ 2, !Ref PrivateSubnetsID ]
+          - !Select [ 0, !Ref PrivateSubnetsID ]
         SecurityGroupID: !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
         IAMRoleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
         IAMProfileID: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
         KeyPairName: !Ref KeyPairName
+        LicenseLink: !Ref LicenseLink
         StorageInstanceType: !Ref StorageInstanceType
         StorageNodeCount: !Ref StorageNodeCount
+        NetworkInterface1ID: !GetAtt MetaInterfacesStack.Outputs.NetworkInterface1ID
+        NetworkInterface2ID: !GetAtt MetaInterfacesStack.Outputs.NetworkInterface2ID
+        NetworkInterface3ID: !GetAtt MetaInterfacesStack.Outputs.NetworkInterface3ID
         VolumeSize: !Ref StorageVolumeSize
-        VolumeType: !Ref StorageVolumeType
+        VolumeType: 'gp2'
         MetaEndpoints: !GetAtt MetaInterfacesStack.Outputs.MetaEndpoints
-        NebulaGraphVersion: !Ref NebulaGraphVersion
+        NebulaGraphVersion: '3.1.3'
         QSS3BucketName: !If
           - UsingDefaultBucket
           - !Sub '${QSS3BucketName}-${AWS::Region}'
@@ -743,214 +515,40 @@ Resources:
           - UsingDefaultBucket
           - !Ref 'AWS::Region'
           - !Ref QSS3BucketRegion
-  ExplorerInstance:
-    Condition: EnableExplorerCondition
-    Type: AWS::EC2::Instance
-    Metadata:
-      AWS::CloudFormation::Authentication:
-        S3AccessCreds:
-          type: S3
-          roleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
-          buckets: !If
-            - UsingDefaultBucket
-            - !Sub '${QSS3BucketName}-${AWS::Region}'
-            - !Ref QSS3BucketName
-      AWS::CloudFormation::Init:
-        config:
-          files:
-            /tmp/explorer-install.sh:
-              source:
-                Fn::Sub:
-                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/explorer-install.sh
-                  - S3Bucket: !If
-                      - UsingDefaultBucket
-                      - !Sub '${QSS3BucketName}-${AWS::Region}'
-                      - !Ref 'QSS3BucketName'
-                    S3Region: !If
-                      - UsingDefaultBucket
-                      - !Ref 'AWS::Region'
-                      - !Ref 'QSS3BucketRegion'
-              mode: '000550'
-              owner: root
-              group: root
-            /tmp/nebula-download:
-              source:
-                Fn::Sub:
-                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/nebula-download
-                  - S3Bucket: !If
-                      - UsingDefaultBucket
-                      - !Sub '${QSS3BucketName}-${AWS::Region}'
-                      - !Ref 'QSS3BucketName'
-                    S3Region: !If
-                      - UsingDefaultBucket
-                      - !Ref 'AWS::Region'
-                      - !Ref 'QSS3BucketRegion'
-              mode: '000550'
-              owner: root
-              group: root
-          commands:
-            01-install-explorer:
-              cwd: '/tmp/'
-              command: 'cd /tmp; sudo dos2unix *.sh; sudo bash explorer-install.sh'
+  WorkbenchNodeStack:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      KeyName: !Ref KeyPairName
-      ImageId: !FindInMap
-        - AWSRegionArch2AMI
-        - !Ref 'AWS::Region'
-        - HVM64
-      IamInstanceProfile: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
-      InstanceType: !Ref ExplorerInstanceType
-      SubnetId: !Ref PrivateSubnet1AID
-      SecurityGroupIds:
-        - !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
-      BlockDeviceMappings:
-        - DeviceName: /dev/sda1
-          Ebs:
-            VolumeSize: '80'
-            VolumeType: gp2
-            DeleteOnTermination: true
-            Encrypted: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${AWS::StackName}-Explorer
-        - Key: AppName
-          Value: 'NebulaExplorer'
-      UserData: !Base64
-        Fn::Sub: |
-          #!/bin/bash -xe
-
-          export PATH=$PATH:/usr/local/bin
-
-          cfn_fail()
-          {
-              cfn-signal -e 1 --stack ${AWS::StackId} --region ${AWS::Region} --resource ExplorerInstance
-              exit 1
-          }
-
-          cfn_success()
-          {
-              cfn-signal -e 0 --stack ${AWS::StackId} --region ${AWS::Region} --resource ExplorerInstance
-              exit 0
-          }
-          apt update -y
-          apt install git dos2unix -y
-          until git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git ; do echo "Retrying"; done
-          cd quickstart-linux-utilities
-          source quickstart-cfn-tools.source
-          qs_update-os || qs_err
-          qs_bootstrap_pip || qs_err " pip bootstrap failed "
-          qs_aws-cfn-bootstrap || qs_err " cfn bootstrap failed "
-          cfn-init -v --stack ${AWS::StackId} --resource ExplorerInstance --region ${AWS::Region} || cfn_fail
-          [ $(qs_status) == 0 ] && cfn_success || cfn_fail
-    CreationPolicy:
-      ResourceSignal:
-        Count: 1
-        Timeout: 'PT5M'
-  DashboardInstance:
-    Condition: EnableDashboardCondition
-    Type: AWS::EC2::Instance
-    Metadata:
-      AWS::CloudFormation::Authentication:
-        S3AccessCreds:
-          type: S3
-          roleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
-          buckets: !If
-            - UsingDefaultBucket
-            - !Sub '${QSS3BucketName}-${AWS::Region}'
-            - !Ref QSS3BucketName
-      AWS::CloudFormation::Init:
-        config:
-          files:
-            /tmp/dashboard-install.sh:
-              source:
-                Fn::Sub:
-                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/dashboard-install.sh
-                  - S3Bucket: !If
-                      - UsingDefaultBucket
-                      - !Sub '${QSS3BucketName}-${AWS::Region}'
-                      - !Ref 'QSS3BucketName'
-                    S3Region: !If
-                      - UsingDefaultBucket
-                      - !Ref 'AWS::Region'
-                      - !Ref 'QSS3BucketRegion'
-              mode: '000550'
-              owner: root
-              group: root
-            /tmp/nebula-download:
-              source:
-                Fn::Sub:
-                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/nebula-download
-                  - S3Bucket: !If
-                      - UsingDefaultBucket
-                      - !Sub '${QSS3BucketName}-${AWS::Region}'
-                      - !Ref 'QSS3BucketName'
-                    S3Region: !If
-                      - UsingDefaultBucket
-                      - !Ref 'AWS::Region'
-                      - !Ref 'QSS3BucketRegion'
-              mode: '000550'
-              owner: root
-              group: root
-          commands:
-            01-install-dashboard:
-              cwd: '/tmp/'
-              command: 'cd /tmp; sudo dos2unix *.sh; sudo bash dashboard-install.sh'
-    Properties:
-      KeyName: !Ref KeyPairName
-      ImageId: !FindInMap
-        - AWSRegionArch2AMI
-        - !Ref 'AWS::Region'
-        - HVM64
-      IamInstanceProfile: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
-      InstanceType: !Ref DashboardInstanceType
-      SubnetId: !Ref PrivateSubnet1AID
-      SecurityGroupIds:
-        - !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
-      BlockDeviceMappings:
-        - DeviceName: /dev/sda1
-          Ebs:
-            VolumeSize: '80'
-            VolumeType: gp2
-            DeleteOnTermination: true
-            Encrypted: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${AWS::StackName}-Dashboard
-        - Key: AppName
-          Value: 'NebulaDashboard'
-      UserData: !Base64
-        Fn::Sub: |
-          #!/bin/bash -xe
-
-          export PATH=$PATH:/usr/local/bin
-
-          cfn_fail()
-          {
-              cfn-signal -e 1 --stack ${AWS::StackId} --region ${AWS::Region} --resource DashboardInstance
-              exit 1
-          }
-
-          cfn_success()
-          {
-              cfn-signal -e 0 --stack ${AWS::StackId} --region ${AWS::Region} --resource DashboardInstance
-              exit 0
-          }
-          apt update -y
-          apt install git dos2unix -y
-          until git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git ; do echo "Retrying"; done
-          cd quickstart-linux-utilities
-          source quickstart-cfn-tools.source
-          qs_update-os || qs_err
-          qs_bootstrap_pip || qs_err " pip bootstrap failed "
-          qs_aws-cfn-bootstrap || qs_err " cfn bootstrap failed "
-          cfn-init -v --stack ${AWS::StackId} --resource DashboardInstance --region ${AWS::Region} || cfn_fail
-          [ $(qs_status) == 0 ] && cfn_success || cfn_fail
-    CreationPolicy:
-      ResourceSignal:
-        Count: 1
-        Timeout: 'PT5M'
+      TemplateURL:
+        Fn::Sub:
+          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/workbench.template.yaml
+          - S3Region: !If
+              - UsingDefaultBucket
+              - !Ref 'AWS::Region'
+              - !Ref QSS3BucketRegion
+            S3Bucket: !If
+              - UsingDefaultBucket
+              - !Sub '${QSS3BucketName}-${AWS::Region}'
+              - !Ref QSS3BucketName
+      Parameters:
+        DeploymentID: !Select [ 2, !Split [ "/", !Ref AWS::StackId ] ]
+        KeyPairName: !Ref KeyPairName
+        LicenseLink: !Ref LicenseLink
+        IAMRoleName: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRole
+        IAMRoleArn: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMRoleArn
+        IAMProfileID: !GetAtt IAMRoleStack.Outputs.NebulaGraphIAMProfile
+        InstanceType: !Ref WorkbenchInstanceType
+        QSS3BucketName: !If
+          - UsingDefaultBucket
+          - !Sub '${QSS3BucketName}-${AWS::Region}'
+          - !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        QSS3BucketRegion: !If
+          - UsingDefaultBucket
+          - !Ref 'AWS::Region'
+          - !Ref QSS3BucketRegion
+        SubnetID: !Select [ 0, !Ref PrivateSubnetsID ]
+        SecurityGroupID: !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
   NlbStack:
-    Condition: EnableNLBCondition
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
@@ -968,38 +566,39 @@ Resources:
         VPCID: !Ref VPCID
         Subnets: !Join
           - ','
-          - [!Ref PublicSubnet1ID]
-        EnableExplorer: !Ref EnableExplorer
+          - [ !Ref PublicSubnet1ID ]
         ExplorerPort: '7002'
-        ExplorerInstanceID: !If
-          - EnableExplorerCondition
-          - !Ref ExplorerInstance
-          - ''
-        EnableDashboard: !Ref EnableDashboard
+        ExplorerInstanceID: !GetAtt WorkbenchNodeStack.Outputs.InstanceID
         DashboardPort: '7005'
-        DashboardInstanceID: !If
-          - EnableDashboardCondition
-          - !Ref DashboardInstance
-          - ''
+        DashboardInstanceID: !GetAtt WorkbenchNodeStack.Outputs.InstanceID
 
 Outputs:
+  DeploymentID:
+    Description: The Deployment ID
+    Value: !Select [ 2, !Split [ "/", !Ref AWS::StackId ] ]
   BastionEIP:
-    Description: Elastic IP for bastion host.
+    Description: Elastic IP for Bastion
     Value: !GetAtt BastionStack.Outputs.EIP1
-  ExplorerPortal:
-    Condition: EnableExplorerCondition
-    Description: The Explorer service web portal.
+  DatabaseVersion:
+    Value: '3.1.3'
+  GraphEndpoint1:
+    Description: The endpoint of Graph Node 1
+    Value: !Sub ['${PrivateIp}:9669', { PrivateIp: !GetAtt GraphNodesStack.Outputs.GraphInstance1PrivateIP }]
+  GraphEndpoint2:
+    Description: The endpoint of Graph Node 2
+    Condition: MoreThan2GraphNodesCondition
+    Value: !Sub ['${PrivateIp}:9669', { PrivateIp: !GetAtt GraphNodesStack.Outputs.GraphInstance2PrivateIP }]
+  GraphEndpoint3:
+    Description: The endpoint of Graph Node 3
+    Condition: MoreThan2GraphNodesCondition
+    Value: !Sub ['${PrivateIp}:9669', { PrivateIp: !GetAtt GraphNodesStack.Outputs.GraphInstance3PrivateIP }]
+  Explorer:
+    Description: Explorer is a browser-based visualization tool.
     Value: !Sub [ 'http://${ElbDNSName}:7002', { ElbDNSName: !GetAtt NlbStack.Outputs.ElbDNSName } ]
-  DashboardPortal:
-    Condition: EnableDashboardCondition
-    Description: The Dashboard service web portal.
-    Value: !Sub [ 'http://${ElbDNSName}:7005', { ElbDNSName: !GetAtt NlbStack.Outputs.ElbDNSName } ]
-  GraphPrivteIP1:
-    Description: Private IP address of Graph node 1.
-    Value: !GetAtt GraphNodesStack.Outputs.GraphInstance1PrivateIP
-  GraphPrivteIP2:
-    Description: Private IP address of Graph node 2.
-    Value: !GetAtt GraphNodesStack.Outputs.GraphInstance2PrivateIP
-  GraphPrivteIP3:
-    Description: Private IP address of Graph node 3.
-    Value: !GetAtt GraphNodesStack.Outputs.GraphInstance3PrivateIP
+  ExplorerLoginInfo:
+    Value: !Sub [ 'Default login username: root, password: nebula, connect host: ${PrivateIp}:9669', { PrivateIp: !GetAtt GraphNodesStack.Outputs.GraphInstance1PrivateIP } ]
+  Dashboard:
+    Description: Dashboard is a visualization tool that monitors and manages the status of machines and services in NebulaGraph clusters.
+    Value: !Sub [ 'http://${ElbDNSName}:7005?lang=EN_US', { ElbDNSName: !GetAtt NlbStack.Outputs.ElbDNSName } ]
+  DashboardLoginInfo:
+    Value: 'The default login username/password is: nebula/nebula, use SSH username ubuntu, authorize the instance via key-pair secret and use sudo to import your cluster to Dashboard'
