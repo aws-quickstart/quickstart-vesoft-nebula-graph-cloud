@@ -261,7 +261,6 @@ configure_storaged() {
   configure_common_flag $STORAGED_CONF
 
   sed -i "s/--wal_ttl.*/--wal_ttl=600/" $STORAGED_CONF
-  sed -i "s/--rocksdb_enable_kv_separation.*/--rocksdb_enable_kv_separation=true/" $STORAGED_CONF
   {
     echo ""
     echo "--rebuild_index_batch_size=40960"
