@@ -10,27 +10,18 @@ Parameters:
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Subnets in which ELB will be created. Select all AZs/Subnet.
-  EnableExplorer:
-    Type: String
-    Description: Enable Explorer service.
   ExplorerPort:
     Type: String
     Description: Explorer portal port.
   ExplorerInstanceID:
     Type: String
     Description: Explorer instance id.
-  EnableDashboard:
-    Type: String
-    Description: Enable Dashboard service.
   DashboardPort:
     Type: String
     Description: Dashboard portal port.
   DashboardInstanceID:
     Type: String
     Description: Dashboard instance id.
-Conditions:
-  EnableExplorerCondition: !Equals [!Ref EnableExplorer, 'true']
-  EnableDashboardCondition: !Equals [!Ref EnableDashboard, 'true']
 Resources:
   ServiceLoadBalancerPublic:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -46,7 +37,6 @@ Resources:
       - Key: Name
         Value: !Sub ${AWS::StackName}-nlb
   ExplorerTargetGroup:
-    Condition: EnableExplorerCondition
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Port: !Ref ExplorerPort
@@ -56,7 +46,6 @@ Resources:
       - Id: !Ref ExplorerInstanceID
         Port: !Ref ExplorerPort
   ExplorerListener:
-    Condition: EnableExplorerCondition
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref ServiceLoadBalancerPublic
@@ -66,7 +55,6 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref ExplorerTargetGroup
   DashboardTargetGroup:
-    Condition: EnableDashboardCondition
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Port: !Ref DashboardPort
@@ -76,7 +64,6 @@ Resources:
         - Id: !Ref DashboardInstanceID
           Port: !Ref DashboardPort
   DashboardListener:
-    Condition: EnableDashboardCondition
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref ServiceLoadBalancerPublic
