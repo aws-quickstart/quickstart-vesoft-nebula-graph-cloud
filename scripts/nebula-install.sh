@@ -110,6 +110,7 @@ ExecStart=/usr/local/nebula/scripts/nebula.service start graphd
 ExecReload=/usr/local/nebula/scripts/nebula.service restart graphd
 ExecStop=/usr/local/nebula/scripts/nebula.service stop graphd
 PrivateTmp=true
+LimitNOFILE=60000
 
 [Install]
 WantedBy=multi-user.target"
@@ -127,6 +128,7 @@ ExecStart=/usr/local/nebula/scripts/nebula.service start metad
 ExecReload=/usr/local/nebula/scripts/nebula.service restart metad
 ExecStop=/usr/local/nebula/scripts/nebula.service stop metad
 PrivateTmp=true
+LimitNOFILE=10000
 
 [Install]
 WantedBy=multi-user.target"
@@ -144,6 +146,7 @@ ExecStart=/usr/local/nebula/scripts/nebula.service start storaged
 ExecReload=/usr/local/nebula/scripts/nebula.service restart storaged
 ExecStop=/usr/local/nebula/scripts/nebula.service stop storaged
 PrivateTmp=true
+LimitNOFILE=100000
 
 [Install]
 WantedBy=multi-user.target"
@@ -418,8 +421,6 @@ health_check() {
 format_data_disks
 
 install_nebula
-
-format_data_disks
 
 configure_license
 
