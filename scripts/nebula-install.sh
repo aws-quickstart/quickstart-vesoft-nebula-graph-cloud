@@ -274,7 +274,7 @@ configure_storaged() {
 
 add_storaged_hosts() {
   log "[add_storaged_hosts] endpoints: ${META_SERVER_ADDRESS}  hosts: ${LOCAL_IP}"
-  sleep 20
+  sleep 60
   chmod +x hosts-manager
   ./hosts-manager add --endpoints "${META_SERVER_ADDRESS}" --hosts "${LOCAL_IP}"
 
