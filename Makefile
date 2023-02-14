@@ -24,7 +24,7 @@ build:
 	  cp -r functions/packages output/build/functions/ ; \
 	fi
 	cp -r scripts templates submodules output/build
-	cp -r scripts templates-standalone output/build
+	cp -r scripts templates-allinone output/build
 	cp -r LICENSE.txt NOTICE.txt output/build
 	if [ "$(VERSION)" != "" ] ; then \
 	  sed -i "s|Default: $(PREFIX)/|Default: $(PREFIX)-versions/$(VERSION)/|g" output/build/templates*/*.yaml ; \
@@ -77,4 +77,4 @@ taskcat:
 	TASKCAT_GENERAL_S3_REGIONAL_BUCKETS=false PROFILE=$(PROFILE) TEST_NAMES=$(TEST_NAMES) REGIONS=$(REGIONS) taskcat -q test run -mnl --skip-upload
 
 lint:
-	cfn-lint templates/*.yaml templates-standalone/*.yaml
+	cfn-lint templates/*.yaml templates-allinone/*.yaml
