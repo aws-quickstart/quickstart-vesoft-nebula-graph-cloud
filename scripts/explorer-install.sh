@@ -10,7 +10,7 @@ help() {
   echo "This script installs NebulaGraph Explorer on Ubuntu"
   echo ""
   echo "Options:"
-  echo "    -v      nebula explorer version, default: 3.2.2"
+  echo "    -v      nebula explorer version, default: 3.4.0"
   echo "    -l      nebula license link, default empty and will provide a trial license"
 
   echo "    -h      view default help content"
@@ -38,7 +38,7 @@ fi
 # Parameter handling
 #########################
 
-EXPLORER_VERSION="3.2.2"
+EXPLORER_VERSION="3.4.0"
 NEBULA_LICENSE_PATH="/usr/local/nebula-explorer/nebula.license"
 EXPLORER_SERVICE_PATH="/usr/local/nebula-explorer/lib/nebula-explorer.service"
 

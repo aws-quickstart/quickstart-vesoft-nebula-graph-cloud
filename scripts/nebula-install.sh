@@ -10,7 +10,7 @@ help() {
   echo "This script installs NebulaGraph on Ubuntu"
   echo ""
   echo "Options:"
-  echo "    -v      nebula version, default: 3.1.3"
+  echo "    -v      nebula version, default: 3.4.0"
   echo "    -c      nebula component, default: all"
   echo "    -m      nebula meta_server_address, default: 127.0.0.1:9559"
   echo "    -i      nebula component index, only used for storaged now, default: 1"
@@ -43,7 +43,7 @@ fi
 #########################
 HOST_INDEX=1
 
-NEBULA_VERSION="3.1.3"
+NEBULA_VERSION="3.4.0"
 NEBULA_COMPONENT="all"
 NEBULA_LICENSE_PATH="/usr/local/nebula/share/resources/nebula.license"
 
@@ -200,7 +200,11 @@ install_nebula() {
     exit $EXIT_CODE
   fi
 
-  dpkg -i "$PACKAGE"
+  dpkg -i --force-architecture "$PACKAGE"
+
+  curl -L -o nebula-console https://github.com/vesoft-inc/nebula-console/releases/download/v3.4.0/nebula-console-linux-amd64-v3.4.0
+  chmod +x nebula-console
+  cp nebula-console /usr/local/bin/
 
   log "[install_nebula] installed NebulaGraph $NEBULA_VERSION"
 }
@@ -263,7 +267,7 @@ configure_storaged() {
   sed -i "s/${FLAG_LOG_PATH}.*/${FLAG_LOG_PATH}=$(echo "${DISK_LOG_PATH}" | sed -e 's/\//\\\//g')/" $STORAGED_CONF
   configure_common_flag $STORAGED_CONF
 
-  sed -i "s/--wal_ttl.*/--wal_ttl=600/" $STORAGED_CONF
+  sed -i "s/--wal_ttl.*/--wal_ttl=14400/" $STORAGED_CONF
   {
     echo ""
     echo "--rebuild_index_batch_size=40960"
