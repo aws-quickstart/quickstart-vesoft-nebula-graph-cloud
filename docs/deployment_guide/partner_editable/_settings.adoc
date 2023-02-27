@@ -3,8 +3,8 @@
 :partner-product-name: NebulaGraph Database
 :partner-product-short-name: NebulaGraph
 :partner-company-name: Vesoft Inc.
-:doc-month: September
-:doc-year: 2022
+:doc-month: February
+:doc-year: 2023
 :partner-contributors: Yao Zhou, {partner-company-name}
 // :other-contributors: Akua Mansa, Trek10
 //:aws-contributors: Janine Singh, AWS IoT Partner team
