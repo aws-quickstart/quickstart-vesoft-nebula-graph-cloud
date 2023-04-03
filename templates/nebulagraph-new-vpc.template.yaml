@@ -686,7 +686,7 @@ Outputs:
     Description: Elastic IP for Bastion
     Value: !GetAtt BastionStack.Outputs.EIP1
   DatabaseVersion:
-    Value: '3.4.0'
+    Value: '3.4.1'
   GraphEndpoint1:
     Description: The endpoint of Graph Node 1
     Value: !Sub [ '${PrivateIp}:9669', { PrivateIp: !GetAtt GraphNodesStack.Outputs.GraphInstance1PrivateIP } ]

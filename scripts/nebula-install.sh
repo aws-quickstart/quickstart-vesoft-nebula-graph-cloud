@@ -266,14 +266,6 @@ configure_storaged() {
   sed -i "s/${FLAG_DATA_PATH}.*/${FLAG_DATA_PATH}=$(echo "${DISK_DATA_PATH}/storage" | sed -e 's/\//\\\//g')/" $STORAGED_CONF
   sed -i "s/${FLAG_LOG_PATH}.*/${FLAG_LOG_PATH}=$(echo "${DISK_LOG_PATH}" | sed -e 's/\//\\\//g')/" $STORAGED_CONF
   configure_common_flag $STORAGED_CONF
-
-  sed -i "s/--wal_ttl.*/--wal_ttl=14400/" $STORAGED_CONF
-  {
-    echo ""
-    echo "--rebuild_index_batch_size=40960"
-    echo ""
-    echo "--query_concurrently=true"
-  } >>$STORAGED_CONF
 }
 
 add_storaged_hosts() {

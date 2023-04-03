@@ -313,7 +313,7 @@ Resources:
         DashboardInstanceID: !GetAtt NebulaGraphStack.Outputs.InstanceID
 Outputs:
   DatabaseVersion:
-    Value: '3.4.0'
+    Value: '3.4.1'
   GraphEndpoint:
     Description: Endpoint of NebulaGraph
     Value: !Sub [ '${PrivateIp}:9669', { PrivateIp: !GetAtt NebulaGraphStack.Outputs.PrivateIp } ]

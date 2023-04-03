@@ -223,62 +223,22 @@ Resources:
               owner: root
               group: root
             /tmp/explorer-install.sh:
-              source:
-                Fn::Sub:
-                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/explorer-install.sh
-                  - S3Bucket: !If
-                      - UsingDefaultBucket
-                      - !Sub '${QSS3BucketName}-${AWS::Region}'
-                      - !Ref 'QSS3BucketName'
-                    S3Region: !If
-                      - UsingDefaultBucket
-                      - !Ref 'AWS::Region'
-                      - !Ref 'QSS3BucketRegion'
+              source: !Sub 'https://${QSS3BucketName}.s3.${QSS3BucketRegion}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/explorer-install.sh'
               mode: '000550'
               owner: root
               group: root
             /tmp/dashboard-install.sh:
-              source:
-                Fn::Sub:
-                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/dashboard-install.sh
-                  - S3Bucket: !If
-                      - UsingDefaultBucket
-                      - !Sub '${QSS3BucketName}-${AWS::Region}'
-                      - !Ref 'QSS3BucketName'
-                    S3Region: !If
-                      - UsingDefaultBucket
-                      - !Ref 'AWS::Region'
-                      - !Ref 'QSS3BucketRegion'
+              source: !Sub 'https://${QSS3BucketName}.s3.${QSS3BucketRegion}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/dashboard-install.sh'
               mode: '000550'
               owner: root
               group: root
             /tmp/analytics-install.sh:
-              source:
-                Fn::Sub:
-                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/analytics-install.sh
-                  - S3Bucket: !If
-                      - UsingDefaultBucket
-                      - !Sub '${QSS3BucketName}-${AWS::Region}'
-                      - !Ref 'QSS3BucketName'
-                    S3Region: !If
-                      - UsingDefaultBucket
-                      - !Ref 'AWS::Region'
-                      - !Ref 'QSS3BucketRegion'
+              source: !Sub 'https://${QSS3BucketName}.s3.${QSS3BucketRegion}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/analytics-install.sh'
               mode: '000550'
               owner: root
               group: root
             /tmp/exchange-install.sh:
-              source:
-                Fn::Sub:
-                  - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/exchange-install.sh
-                  - S3Bucket: !If
-                      - UsingDefaultBucket
-                      - !Sub '${QSS3BucketName}-${AWS::Region}'
-                      - !Ref 'QSS3BucketName'
-                    S3Region: !If
-                      - UsingDefaultBucket
-                      - !Ref 'AWS::Region'
-                      - !Ref 'QSS3BucketRegion'
+              source: !Sub 'https://${QSS3BucketName}.s3.${QSS3BucketRegion}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/exchange-install.sh'
               mode: '000550'
               owner: root
               group: root
