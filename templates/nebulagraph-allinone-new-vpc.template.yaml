@@ -195,7 +195,7 @@ Resources:
     Properties:
       TemplateURL:
         Fn::Sub:
-          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates-allinone/vpc.template.yaml
+          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/allinone/vpc.template.yaml
           - S3Region: !If
               - UsingDefaultBucket
               - !Ref 'AWS::Region'
@@ -214,7 +214,7 @@ Resources:
     Properties:
       TemplateURL:
         Fn::Sub:
-          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates-allinone/nebulagraph-iam.template.yaml
+          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/nebulagraph-iam.template.yaml
           - S3Region: !If
               - UsingDefaultBucket
               - !Ref 'AWS::Region'
@@ -228,7 +228,7 @@ Resources:
     Properties:
       TemplateURL:
         Fn::Sub:
-          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates-allinone/securitygroups.template.yaml
+          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/securitygroups.template.yaml
           - S3Region: !If
               - UsingDefaultBucket
               - !Ref 'AWS::Region'
@@ -244,7 +244,7 @@ Resources:
     Properties:
       TemplateURL:
         Fn::Sub:
-          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates-allinone/securitygroups-rules.template.yaml
+          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/allinone/securitygroups-rules.template.yaml
           - S3Region: !If
               - UsingDefaultBucket
               - !Ref 'AWS::Region'
@@ -261,7 +261,7 @@ Resources:
     Properties:
       TemplateURL:
         Fn::Sub:
-          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates-allinone/nebula-cluster.template.yaml
+          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/allinone/nebula-cluster.template.yaml
           - S3Region: !If
               - UsingDefaultBucket
               - !Ref 'AWS::Region'
@@ -293,7 +293,7 @@ Resources:
     Properties:
       TemplateURL:
         Fn::Sub:
-          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates-allinone/nlb.template.yaml
+          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/nlb.template.yaml
           - S3Region: !If
               - UsingDefaultBucket
               - !Ref 'AWS::Region'

@@ -10,20 +10,14 @@ Metadata:
           default: Security Groups configuration
         Parameters:
           - SecurityGroupID
-          - BastionSecurityGroupID
     ParameterLabels:
       SecurityGroupID:
         default: Security group ID
-      BastionSecurityGroupID:
-        default: Bastion security group ID
       AccessCIDR:
         default: Access CIDR
 Parameters:
   SecurityGroupID:
     Description: The associated SecurityGroupID.
-    Type: AWS::EC2::SecurityGroup::Id
-  BastionSecurityGroupID:
-    Description: The BastionSecurityGroupID range that is permitted to access.
     Type: AWS::EC2::SecurityGroup::Id
   AccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
@@ -50,21 +44,3 @@ Resources:
       FromPort: 7005
       ToPort: 7005
       CidrIp: !Ref AccessCIDR
-  SecurityGroupIngressBastionICMP:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      Description: Allow ICMP inbound communications from bastion
-      GroupId: !Ref SecurityGroupID
-      IpProtocol: icmp
-      FromPort: -1
-      ToPort: -1
-      SourceSecurityGroupId: !Ref BastionSecurityGroupID
-  SecurityGroupIngressBastionSSH:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      Description: Allow SSH inbound communications from bastion
-      GroupId: !Ref SecurityGroupID
-      IpProtocol: tcp
-      FromPort: 22
-      ToPort: 22
-      SourceSecurityGroupId: !Ref BastionSecurityGroupID

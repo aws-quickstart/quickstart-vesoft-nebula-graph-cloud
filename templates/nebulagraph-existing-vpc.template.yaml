@@ -10,17 +10,11 @@ Metadata:
           - VPCID
           - PrivateSubnetsID
           - PublicSubnet1ID
-          - RemoteAccessCIDR
           - AccessCIDR
       - Label:
           default: Amazon EC2 configuration
         Parameters:
           - KeyPairName
-      - Label:
-          default: Bastion configuration
-        Parameters:
-          - BastionAMIOS
-          - BastionInstanceType
       - Label:
           default: NebulaGraph configuration
         Parameters:
@@ -44,16 +38,10 @@ Metadata:
         default: Private subnets ID
       PublicSubnet1ID:
         default: Public subnet 1 ID
-      RemoteAccessCIDR:
-        default: Allowed bastion external access CIDR
       AccessCIDR:
         default: Permitted IP range
       KeyPairName:
         default: Key-pair name
-      BastionAMIOS:
-        default: Bastion AMI OS
-      BastionInstanceType:
-        default: Bastion instance type
       LicenseLink:
         default: NebulaGraph License Link
       GraphNodeCount:
@@ -84,12 +72,6 @@ Parameters:
   PublicSubnet1ID:
     Description: Public subnet 1 ID.
     Type: AWS::EC2::Subnet::Id
-  RemoteAccessCIDR:
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x.
-    Description: Allowed CIDR block for external Secure Shell (SSH) access to bastion hosts.
-    Default: 10.0.0.0/16
-    Type: String
   AccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
@@ -101,38 +83,6 @@ Parameters:
     ConstraintDescription: Cannot be empty.
     Description: Key pairs allow you to connect to your instance after it launches.
     Type: AWS::EC2::KeyPair::KeyName
-  BastionAMIOS:
-    AllowedValues:
-      - Amazon-Linux2-HVM
-      - CentOS-7-HVM
-      - Ubuntu-Server-20.04-LTS-HVM
-      - SUSE-SLES-15-HVM
-    Default: Amazon-Linux2-HVM
-    Description: Linux distribution for the AMI to be used for bastion instances.
-    Type: String
-  BastionInstanceType:
-    AllowedValues:
-      - t2.nano
-      - t2.micro
-      - t2.small
-      - t2.medium
-      - t2.large
-      - t3.micro
-      - t3.small
-      - t3.medium
-      - t3.large
-      - t3.xlarge
-      - t3.2xlarge
-      - m5.large
-      - m5.xlarge
-      - m5.2xlarge
-      - m4.large
-      - m4.xlarge
-      - m4.2xlarge
-      - m4.4xlarge
-    Default: t2.micro
-    Description: Amazon EC2 instance type for bastion instances.
-    Type: String
   LicenseLink:
     Description: You can skip this for 3-day free trial, or you can contact us for an enterprise license via https://www.nebula-graph.io/contact.
     Type: String
@@ -318,34 +268,6 @@ Conditions:
     - !Equals [!Ref GraphNodeCount, '2']
     - !Equals [!Ref GraphNodeCount, '3']
 Resources:
-  BastionStack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL:
-        Fn::Sub:
-          - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
-          - S3Region: !If
-              - UsingDefaultBucket
-              - !Ref 'AWS::Region'
-              - !Ref QSS3BucketRegion
-            S3Bucket: !If
-              - UsingDefaultBucket
-              - !Sub '${QSS3BucketName}-${AWS::Region}'
-              - !Ref QSS3BucketName
-      Parameters:
-        BastionAMIOS: !Ref BastionAMIOS
-        BastionInstanceType: !Ref BastionInstanceType
-        OSImageOverride: ''
-        NumBastionHosts: 1
-        KeyPairName: !Ref KeyPairName
-        EnableTCPForwarding: 'true'
-        PublicSubnet1ID: !Ref PublicSubnet1ID
-        PublicSubnet2ID: !Ref PublicSubnet1ID
-        RemoteAccessCIDR: !Ref RemoteAccessCIDR
-        VPCID: !Ref VPCID
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3BucketRegion: !Ref QSS3BucketRegion
-        QSS3KeyPrefix: !Sub '${QSS3KeyPrefix}submodules/quickstart-linux-bastion/'
   SecurityGroupStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -378,7 +300,6 @@ Resources:
               - !Ref QSS3BucketName
       Parameters:
         SecurityGroupID: !GetAtt SecurityGroupStack.Outputs.SecurityGroupID
-        BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
         AccessCIDR: !Ref AccessCIDR
   IAMRoleStack:
     Type: AWS::CloudFormation::Stack
@@ -576,9 +497,6 @@ Outputs:
   DeploymentID:
     Description: The Deployment ID
     Value: !Select [ 2, !Split [ "/", !Ref AWS::StackId ] ]
-  BastionEIP:
-    Description: Elastic IP for Bastion
-    Value: !GetAtt BastionStack.Outputs.EIP1
   DatabaseVersion:
     Value: '3.4.1'
   GraphEndpoint1:

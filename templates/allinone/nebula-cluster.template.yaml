@@ -5,7 +5,7 @@ Metadata:
     Exclusions: [ W9002, W9003, W9004, W9006 ]
 Parameters:
   SubnetID:
-    Description: ID of existing private subnet for the storaged.
+    Description: ID of existing private subnet for deployment.
     Type: AWS::EC2::Subnet::Id
   SecurityGroupID:
     Description: ID of your existing SecurityGroup for deployment.
@@ -17,8 +17,7 @@ Parameters:
     Description: ID of the NebulaGraph IAM Profile.
     Type: String
   KeyPairName:
-    Description: Name of an existing EC2 key pair. All instances will launch with
-      this key pair.
+    Description: Name of an existing EC2 key pair. All instances will launch with this key pair.
     Type: AWS::EC2::KeyPair::KeyName
   LicenseLink:
     Description: NebulaGraph License Link
@@ -248,7 +247,7 @@ Resources:
               command: !Sub 'sudo dos2unix *.sh; sudo bash license-install.sh "${LicenseLink}"'
             02-install-nebula:
               cwd: '/tmp/'
-              command: !Sub 'sudo dos2unix *.sh; sudo bash nebula-install.sh -v 3.1.2 -l "${LicenseLink}"'
+              command: !Sub 'sudo dos2unix *.sh; sudo bash nebula-install.sh -v 3.4.1 -l "${LicenseLink}"'
             03-install-node-exporter:
               cwd: '/tmp/'
               command: 'sudo dos2unix *.sh; sudo bash node-exporter-install.sh'
