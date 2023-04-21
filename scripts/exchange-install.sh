@@ -93,7 +93,7 @@ configure_scala() {
   log "[configure_scala] finished to configure scala"
 }
 
-# only standalone version support, distribution version needs to deploy by user self
+# only all-in-one version support, distribution version needs to deploy by user self
 configure_and_deploy_spark() {
   log "[configure_and_deploy_spark] start to configure spark"
   local SPARK_RESOURCE="spark-2.4.8-bin-hadoop2.7"

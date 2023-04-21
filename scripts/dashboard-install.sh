@@ -10,7 +10,7 @@ help() {
   echo "This script installs NebulaGraph Dashboard on Ubuntu"
   echo ""
   echo "Options:"
-  echo "    -v      nebula dashboard version, default: 3.2.0"
+  echo "    -v      nebula dashboard version, default: 3.4.0"
   echo "    -g      nebula graph ips, seperated by comma,"
   echo "    -m      nebula meta ips, seperated by comma,"
   echo "    -s      nebula storage ips, seperated by comma,"
@@ -40,7 +40,7 @@ fi
 # Parameter handling
 #########################
 
-DASHBOARD_VERSION="3.2.0"
+DASHBOARD_VERSION="3.4.0"
 DASHBOARD_PATH="/usr/local/nebula-dashboard-ent"
 NEBULA_LICENSE_PATH="${DASHBOARD_PATH}/nebula.license"
 SYSTEMD_PATH="/usr/lib/systemd/system"
